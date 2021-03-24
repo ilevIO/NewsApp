@@ -8,6 +8,6 @@
 import Foundation
 
 public struct NewsSource: Codable {
-    public var id: Int?
+    public var id: String?
     public var name: String?
 }

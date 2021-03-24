@@ -8,8 +8,9 @@
 import Alamofire
 import Foundation
 
-public extension NewsGroup {
+public extension Endpoints.News {
     struct GetEverything: APIRequest {
+        
         public var path: String { "everything" }
         public var httpMethod: HTTPMethod = .get
         public var parameters: Parameters
@@ -20,7 +21,7 @@ public extension NewsGroup {
     }
 }
 
-public extension NewsGroup.GetEverything {
+public extension Endpoints.News.GetEverything {
     struct Parameters: Codable {
         ///Keywords or phrases to search for in the article title and body.
         public var q: String? = nil
@@ -40,10 +41,10 @@ public extension NewsGroup.GetEverything {
     }
 }
     
-public extension NewsGroup.GetEverything {
+public extension Endpoints.News.GetEverything {
     struct Response: Codable {
         public var status: GetNewsStatus?
         public var totalResults: Int?
-        public var articles: [Article]?
+        public var articles: [ArticleDTO]?
     }
 }

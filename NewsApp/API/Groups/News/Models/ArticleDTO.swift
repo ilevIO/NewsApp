@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct Article: Codable {
+public struct ArticleDTO: Codable {
     public var source: NewsSource?
     public var author: String?
     public var title: String?

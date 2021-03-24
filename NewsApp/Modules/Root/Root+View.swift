@@ -21,6 +21,7 @@ extension Root {
             
             viewControllers = [presenter.rootView]
             navigationBar.isHidden = true
+            self.view.backgroundColor = .systemBackground
         }
         
         init(with presenter: Presenter) {

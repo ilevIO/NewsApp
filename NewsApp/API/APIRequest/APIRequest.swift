@@ -26,7 +26,7 @@ extension APIRequest {
     public var encoder: ParameterEncoder {
         switch httpMethod {
         case .get, .delete, .head:
-            return CleanParameterEncoder(destination: .queryString)
+            return CleanParameterEncoder(encoder: URLEncodedFormEncoder(dateEncoding: .iso8601), destination: .queryString)
         default:
             return JSONParameterEncoder(
                 encoder: {

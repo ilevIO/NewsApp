@@ -22,7 +22,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let rootCoordinator = Root.Coordinator(window: window, presenter: rootPresenter)
         Current.root = rootPresenter
         rootCoordinator.start()
-        self.window = window
+        window.makeKeyAndVisible()
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {

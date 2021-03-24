@@ -19,7 +19,7 @@ extension Root {
         init(window: UIWindow, presenter: Presenter) {
             self.window = window
             
-            let rootPresenter = presenter//Root.Presenter()
+            let rootPresenter = presenter
             let rootView = Root.View(with: rootPresenter)
             super.init(presenter: rootPresenter)
             rootPresenter.coordinator = self

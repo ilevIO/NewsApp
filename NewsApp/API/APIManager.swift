@@ -10,6 +10,8 @@ import Foundation
 public protocol AuthorizationProtocol {
     func setAccessToken(_ accessToken: String)
     func accessToken() -> String?
+    
+    var httpField: String? { get }
 }
 
 public class APIManager {

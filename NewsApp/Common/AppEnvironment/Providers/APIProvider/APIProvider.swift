@@ -9,5 +9,11 @@ import Foundation
 
 struct APIProvider {
     let subscriptions = CancellablesManager<URLSessionTask>()
+    
+    var news: NewsGroup
 }
 
+
+extension APIProvider {
+    static var `default`: APIProvider = .init(news: .default)
+}

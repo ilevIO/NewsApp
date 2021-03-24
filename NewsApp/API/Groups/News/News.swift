@@ -5,4 +5,6 @@
 //  Created by Ilya Yelagov on 3/24/21.
 //
 
-public enum NewsGroup { }
+public extension Endpoints {
+    enum News { }
+}

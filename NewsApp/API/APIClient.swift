@@ -17,7 +17,7 @@ public class APIClient {
             var request = try requestBuilder.build(request)
             
             if let token = authorization.accessToken() {
-                request.addValue("\(token)", forHTTPHeaderField: "Authorization")
+                request.addValue("\(token)", forHTTPHeaderField: authorization.httpField ?? "Authorization")
             }
             
             let task = session.dataTask(with: request) { data, response, error in

@@ -13,7 +13,7 @@ extension NewsScreen {
         View(with: presenter)
     }
     
-    class View: UIViewController, NewsScreenView {
+    class View: UIViewController {
         var presenter: Presenter!
         
         //MARK: - Subviews
@@ -21,23 +21,23 @@ extension NewsScreen {
         
         //MARK: - Setup
         private func buildHierarchy() {
-            
+            view.addSubview(newsTableView)
         }
         
         private func configureSubviews() {
-            
+            newsTableView.dataSource = self
+            newsTableView.delegate = self
+            newsTableView.register(UITableViewCell.self, forCellReuseIdentifier: "NewsCell")
         }
         
         private func setupLayout() {
-            
+            view.fillLayout(with: newsTableView)
         }
         
         private func setup() {
             buildHierarchy()
             configureSubviews()
             setupLayout()
-            
-            self.view.backgroundColor = .systemRed
         }
         
         //MARK: - Lifecycle
@@ -45,6 +45,8 @@ extension NewsScreen {
             super.viewDidLoad()
             
             setup()
+            
+            presenter.fetchNews()
         }
         
         
@@ -62,13 +64,21 @@ extension NewsScreen {
     }
 }
 
+extension NewsScreen.View: NewsScreenView {
+    func update() {
+        newsTableView.reloadData()
+    }
+}
+
 extension NewsScreen.View: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         presenter.news.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        .init()
+        let cell = tableView.dequeueReusableCell(withIdentifier: "NewsCell", for: indexPath)
+        cell.textLabel?.text = presenter.news[indexPath.row].title
+        return cell
     }
     
     

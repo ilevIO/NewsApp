@@ -9,6 +9,7 @@ import Foundation
 
 class NewsAuthorization: AuthorizationProtocol {
     static var apiKey: String? = newsAPIKey
+    var httpField: String? { "x-api-key" }
     
     func setAccessToken(_ accessToken: String) {
         Self.apiKey = accessToken
@@ -33,7 +34,7 @@ struct AppEnvironment {
 extension AppEnvironment {
     static var `default`: Self {
         AppEnvironment(
-            api: APIProvider()
+            api: .default
         )
     }
 }

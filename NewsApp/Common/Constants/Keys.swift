@@ -7,4 +7,4 @@
 
 import Foundation
 
-let newsAPIKey = API_KEY
+let newsAPIKey = "f3a81ea3cb1c4caba741526a3b5afc73"
