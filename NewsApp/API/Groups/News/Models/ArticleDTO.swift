@@ -15,5 +15,5 @@ public struct ArticleDTO: Codable {
     public var url: String?
     public var urlToImage: String?
     public var publishedAt: String?
-    public var content: String
+    public var content: String?
 }

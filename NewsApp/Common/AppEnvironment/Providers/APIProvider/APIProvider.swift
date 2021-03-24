@@ -16,4 +16,5 @@ struct APIProvider {
 
 extension APIProvider {
     static var `default`: APIProvider = .init(news: .default)
+    static var `mock`: APIProvider = .init(news: .mock)
 }

@@ -8,10 +8,7 @@
 import Foundation
 
 extension Root {
-    class Presenter: SomePresenter {
-        
-        var coordinator: CoordinatorProtocol?
-        
+    class Presenter {
         weak var view: RootView?
         
         var rootView = NewsScreen.view(with: .init())

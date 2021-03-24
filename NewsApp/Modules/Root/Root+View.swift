@@ -19,11 +19,13 @@ extension Root {
         override func viewDidLoad() {
             super.viewDidLoad()
             
-            viewControllers = [presenter.rootView]
+            setup()
             navigationBar.isHidden = true
-            self.view.backgroundColor = .systemBackground
+            self.view.backgroundColor = .white
         }
-        
+        deinit {
+            print("xxx")
+        }
         init(with presenter: Presenter) {
             self.presenter = presenter
             super.init(nibName: nil, bundle: nil)

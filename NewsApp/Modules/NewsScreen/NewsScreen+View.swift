@@ -17,27 +17,51 @@ extension NewsScreen {
         var presenter: Presenter!
         
         //MARK: - Subviews
-        private let newsTableView: UITableView = .init()
+        private var newsCollectionView: UICollectionView!
         
         //MARK: - Setup
+        
+        private func initializeSubviews() {
+            /*let size = NSCollectionLayoutSize(
+                        widthDimension: NSCollectionLayoutDimension.fractionalWidth(1),
+                        heightDimension: NSCollectionLayoutDimension.estimated(200)
+                    )
+            let item = NSCollectionLayoutItem(layoutSize: size)
+            let group = NSCollectionLayoutGroup.horizontal(layoutSize: size, subitem: item, count: 2)
+            group.interItemSpacing = .fixed(12)
+            let section = NSCollectionLayoutSection(group: group)
+            section.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10)
+            section.interGroupSpacing = 10
+            
+            let layout = UICollectionViewCompositionalLayout(section: section)*/
+            let layout = UICollectionViewFlowLayout()
+            layout.scrollDirection = .vertical
+            layout.sectionInset = .init(top: 0, left: 16, bottom: 0, right: 16)
+            //layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
+            newsCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        }
+        
         private func buildHierarchy() {
-            view.addSubview(newsTableView)
+            view.addSubview(newsCollectionView)
         }
         
         private func configureSubviews() {
-            newsTableView.dataSource = self
-            newsTableView.delegate = self
-            newsTableView.register(UITableViewCell.self, forCellReuseIdentifier: "NewsCell")
+            newsCollectionView.dataSource = self
+            newsCollectionView.delegate = self
+            newsCollectionView.register(ArticleCollectionViewCell.self, forCellWithReuseIdentifier: "NewsCell")
+            newsCollectionView.backgroundColor = .clear
         }
         
         private func setupLayout() {
-            view.fillLayout(with: newsTableView)
+            view.fillLayout(with: newsCollectionView)
         }
         
         private func setup() {
+            initializeSubviews()
             buildHierarchy()
             configureSubviews()
             setupLayout()
+            self.view.backgroundColor = .systemRed
         }
         
         //MARK: - Lifecycle
@@ -47,6 +71,7 @@ extension NewsScreen {
             setup()
             
             presenter.fetchNews()
+            self.view.backgroundColor = .white
         }
         
         
@@ -66,18 +91,18 @@ extension NewsScreen {
 
 extension NewsScreen.View: NewsScreenView {
     func update() {
-        newsTableView.reloadData()
+        newsCollectionView.reloadData()
     }
 }
 
-extension NewsScreen.View: UITableViewDelegate, UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        presenter.news.count
+extension NewsScreen.View: UICollectionViewDelegate, UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return presenter.news.count
     }
     
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "NewsCell", for: indexPath)
-        cell.textLabel?.text = presenter.news[indexPath.row].title
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "NewsCell", for: indexPath) as! ArticleCollectionViewCell
+        cell.configure(with: presenter.news[indexPath.row])
         return cell
     }
     

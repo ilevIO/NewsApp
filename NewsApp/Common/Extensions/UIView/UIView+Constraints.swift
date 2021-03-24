@@ -141,3 +141,40 @@ protocol Anchored {
 
 extension UIView: Anchored { }
 extension UILayoutGuide: Anchored { }
+
+public extension UIView {
+    ///Removes all constraints from all superviews hierarchically
+    func removeAllConstraints() {
+        var _superview = self.superview
+
+        while let superview = _superview {
+            for constraint in superview.constraints {
+
+                if let first = constraint.firstItem as? UIView, first == self {
+                    superview.removeConstraint(constraint)
+                }
+
+                if let second = constraint.secondItem as? UIView, second == self {
+                    superview.removeConstraint(constraint)
+                }
+            }
+
+            _superview = superview.superview
+        }
+
+        self.removeConstraints(self.constraints)
+    }
+    
+    func removeAllConstraints(with view: UIView) {
+        for constraint in view.constraints {
+
+            if let first = constraint.firstItem as? UIView, first == self {
+                view.removeConstraint(constraint)
+            }
+
+            if let second = constraint.secondItem as? UIView, second == self {
+                view.removeConstraint(constraint)
+            }
+        }
+    }
+}

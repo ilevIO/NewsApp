@@ -27,14 +27,15 @@ let _apiManager = APIManager(
 
 struct AppEnvironment {
     var api: APIProvider
-    
+    var image: ImageProvider
     var root: Root.Presenter?
 }
 
 extension AppEnvironment {
     static var `default`: Self {
         AppEnvironment(
-            api: .default
+            api: .mock,
+            image: .default
         )
     }
 }

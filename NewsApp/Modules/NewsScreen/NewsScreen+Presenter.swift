@@ -8,13 +8,11 @@
 import Foundation
 
 extension NewsScreen {
-    class Presenter: SomePresenter {
-        weak var coordinator: CoordinatorProtocol?
-        
+    class Presenter {
         weak var view: NewsScreenView?
         
         private(set) var subscriptionId = UUID().hashValue
-        var news: [Article] = []
+        var news: [ArticleModel] = []
         
         func fetchNews() {
             let sevenDaysBack = Calendar.current.date(byAdding: .day, value: -7, to: .init())!
@@ -36,7 +34,7 @@ extension NewsScreen {
                 )
             ) { [weak self] news in
                 guard let self = self, let news = news else { return }
-                self.news = news.articles
+                self.news = news.articles.map({ ArticleModel(with: $0) })
                 DispatchQueue.main.async {
                     self.view?.update()
                 }
