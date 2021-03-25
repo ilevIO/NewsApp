@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import WebKit
 
 class NewsLoader: SubscriberObject {
     var subscriptionId: Int = UUID().hashValue
@@ -47,12 +48,34 @@ extension NewsScreen {
         func refresh() {
             currentPeriod = Calendar.current.date(byAdding: .day, value: -1, to: Date())!...Date()
             news = []
+            //self.currentPeriod = Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.lowerBound)!...Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.upperBound)!
+            newsLoader.loadNext(currentLoaded: 0, for: currentPeriod) { [weak self] news in
+                guard let self = self, let news = news else { return }
+                
+                if !news.articles.isEmpty {
+                    self.currentPeriod = Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.lowerBound)!...Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.upperBound)!
+                    self.news.append(contentsOf: news.articles.compactMap({ ArticleModel(with: $0) }))
+                }
+                DispatchQueue.main.async {
+                    UIView.animate(withDuration: 0.3) {
+                        self.view?.update(with: self.news, forced: true)
+                    }
+                }
+            }
         }
         
         func searchQueryChanged(to query: String) {
         }
+        func newsCellTapped(at index: IndexPath) {
+            guard let _url = news[index.item].url, let url = URL(string: _url) else { return }
+            let webView = WKWebView()
+            let vc = UIViewController()
+            vc.view.fill(with: webView)
+            webView.load(.init(url: url))
+            Current.root?.rootView.navigationController?.pushViewController(vc, animated: true)
+        }
         
-        func scrollDidReachBounds(withOffset offset: CGFloat) {
+        func loadNext() {
             newsLoader.loadNext(currentLoaded: news.count, for: currentPeriod) { [weak self] news in
                 guard let self = self, let news = news else { return }
                 let newArticles = news.articles.filter { fetchedArticle in
@@ -63,13 +86,17 @@ extension NewsScreen {
                 if !news.articles.isEmpty {
                     self.currentPeriod = Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.lowerBound)!...Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.upperBound)!
                     self.news.append(contentsOf: newArticles.compactMap({ ArticleModel(with: $0) }))
-                    DispatchQueue.main.async {
-                        UIView.animate(withDuration: 0.3) {
-                            self.view?.update()
-                        }
+                }
+                DispatchQueue.main.async {
+                    UIView.animate(withDuration: 0.3) {
+                        self.view?.update(with: self.news, forced: false)
                     }
                 }
             }
+        }
+        
+        func scrollDidReachBounds(withOffset offset: CGFloat) {
+            loadNext()
         }
         
         func fetchNews() {

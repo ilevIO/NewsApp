@@ -56,9 +56,15 @@ class ArticleCollectionViewCell: UICollectionViewCell {
         }
     }
     
+    override var bounds: CGRect {
+        didSet {
+            
+        }
+    }
+    
     override func layoutSubviews() {
-        titleLabel.preferredMaxLayoutWidth = titleLabel.bounds.width
         super.layoutSubviews()
+        titleLabel.preferredMaxLayoutWidth = titleLabel.bounds.width
         let arrangedSubviews = contentView.subviews
         for arrangedSubview in arrangedSubviews where !(arrangedSubview is UIImageView) {
             //arrangedSubview.frame.size.height = arrangedSubview.intrinsicContentSize.height
@@ -67,8 +73,10 @@ class ArticleCollectionViewCell: UICollectionViewCell {
                 $0.firstAnchor === arrangedSubview.heightAnchor || $0.secondAnchor === arrangedSubview.heightAnchor }
                 ?? arrangedSubview.heightAnchor.constraint(equalToConstant: max(arrangedSubview.intrinsicContentSize.height, 1))
             )
-            heightConstraint.priority = .defaultHigh
-            heightConstraint.isActive = true
+            heightConstraint.priority = .required
+            if !heightConstraint.isActive {
+                heightConstraint.isActive = true
+            }
             heightConstraint.constant = arrangedSubview.intrinsicContentSize.height
             // heightAnchor.constraint(equalToConstant: arrangedSubview.intrinsicContentSize.height).isActive = true
         }
@@ -124,25 +132,30 @@ class ArticleCollectionViewCell: UICollectionViewCell {
         }
         
         var prevAnchor = contentView.topAnchor
+        var constraints = [NSLayoutConstraint]()
         for arrangedSubview in arrangedSubviews {
             contentView.addSubview(arrangedSubview)
             
             arrangedSubview.translatesAutoresizingMaskIntoConstraints = false
             if arrangedSubview === self.imageView {
-                arrangedSubview.attach(to: contentView, left: 0, right: 0)
+                constraints += arrangedSubview.attach(to: contentView, left: 0, right: 0, activated: false)
             } else {
                 //arrangedSubview.setContentHuggingPriority(.required, for: .vertical)
-                arrangedSubview.attach(to: contentView, left: 8, right: 8)
+                constraints += arrangedSubview.attach(to: contentView, left: 8, right: 8, activated: false)
                 //arrangedSubview.heightAnchor.constraint(equalToConstant: max(arrangedSubview.intrinsicContentSize.height, 0)).isActive = true
             }
-            arrangedSubview.topAnchor.constraint(equalTo: prevAnchor, constant: 4).isActive = true
+            let topConstraint = arrangedSubview.topAnchor.constraint(equalTo: prevAnchor, constant: 4)
+            topConstraint.priority = .defaultHigh
+            constraints += [topConstraint]
             
             prevAnchor = arrangedSubview.bottomAnchor
         }
-        arrangedSubviews.last?.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: 0).isActive = true
+        (arrangedSubviews.last?.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: 0)).flatMap({ constraints += [$0] })
         
-        imageView.heightAnchor.constraint(equalTo: contentView.widthAnchor, multiplier: 0.8).isActive = true
-        self.setNeedsUpdateConstraints()
+        let imageViewConstraint = imageView.heightAnchor.constraint(equalTo: contentView.widthAnchor, multiplier: 0.8)
+        constraints += [imageViewConstraint]
+        NSLayoutConstraint.activate(constraints)
+        
         self.layoutSubviews()
         /*verticalStackView.arrangedSubviews.forEach({
             //$0.translatesAutoresizingMaskIntoConstraints = false

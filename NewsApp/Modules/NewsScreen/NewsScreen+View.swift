@@ -17,9 +17,13 @@ extension NewsScreen {
         var presenter: Presenter!
         
         var isReloadingData = false
+        var news: [ArticleModel] = [] {
+            didSet {
+            }
+        }
         //MARK: - Subviews
         var newsCollectionView: UICollectionView!
-        
+        var refreshControl = UIRefreshControl()
         //MARK: - Setup
         
         private func initializeSubviews() {
@@ -45,8 +49,13 @@ extension NewsScreen {
             //newsCollectionView.contentInset.right = 16
         }
         
+        @objc func refreshPulled(_ sender: UIRefreshControl) {
+            presenter.refresh()
+        }
+        
         private func buildHierarchy() {
             view.addSubview(newsCollectionView)
+            newsCollectionView.addSubview(refreshControl)
         }
         
         override func viewDidLayoutSubviews() {
@@ -61,6 +70,8 @@ extension NewsScreen {
             newsCollectionView.register(ArticleCollectionViewCell.self, forCellWithReuseIdentifier: "NewsCell")
             newsCollectionView.backgroundColor = .clear
             newsCollectionView.alwaysBounceVertical = true
+            
+            refreshControl.addTarget(self, action: #selector(refreshPulled(_:)), for: .valueChanged)
         }
         
         private func setupLayout() {
@@ -109,23 +120,30 @@ extension NewsScreen {
 }
 
 extension NewsScreen.View: NewsScreenView {
-    func update() {
-        UIView.animate(withDuration: 0.3) {
+    func update(with news: [ArticleModel], forced: Bool) {
+        self.news = news
+        refreshControl.endRefreshing()
+        if !forced {
             let currentNumber = self.newsCollectionView.numberOfItems(inSection: 0)
-            let toInsert = self.presenter.news.count - currentNumber
-            self.newsCollectionView.insertItems(at: (currentNumber..<currentNumber + toInsert).map({ IndexPath(item: $0, section: 0) }))
+            let toInsert = news.count - currentNumber
+            guard toInsert > 0 else { return }
+            UIView.animate(withDuration: 0.3) {
+                self.newsCollectionView.insertItems(at: (currentNumber..<currentNumber + toInsert).map({ IndexPath(item: $0, section: 0) }))
+            }
+        } else {
+            self.newsCollectionView.reloadData()
         }
     }
 }
 
 extension NewsScreen.View: UICollectionViewDelegate, UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return presenter.news.count
+        return news.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "NewsCell", for: indexPath) as! ArticleCollectionViewCell
-        cell.configure(with: presenter.news[indexPath.row])
+        cell.configure(with: news[indexPath.row])
         return cell
     }
     

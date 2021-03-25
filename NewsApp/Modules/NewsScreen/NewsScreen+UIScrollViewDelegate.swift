@@ -15,14 +15,6 @@ extension NewsScreen.View {
             }
             
             presenter.scrollDidReachBounds(withOffset: scrollView.contentOffset.y - scrollView.frame.minY)
-        } else if scrollView.contentOffset.y < -160 + scrollView.contentInset.top {
-            if !isReloadingData {
-                isReloadingData = true
-                newsCollectionView.performBatchUpdates(nil, completion: {
-                    (result) in
-                    self.isReloadingData = false
-                })
-            }
         }
     }
 }

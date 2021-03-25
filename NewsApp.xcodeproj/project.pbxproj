@@ -59,6 +59,8 @@
 		D17AF3A8260BEABC0050731E /* newsmock.json in Resources */ = {isa = PBXBuildFile; fileRef = D17AF3A7260BEABB0050731E /* newsmock.json */; };
 		D17AF3AD260BF2090050731E /* NewsScreen+UIScrollViewDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17AF3AC260BF2090050731E /* NewsScreen+UIScrollViewDelegate.swift */; };
 		D17AF3B3260C5F1D0050731E /* UILabel+LineCount.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17AF3B2260C5F1D0050731E /* UILabel+LineCount.swift */; };
+		D17AF3C5260CDB950050731E /* Collection+Safe.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17AF3C4260CDB940050731E /* Collection+Safe.swift */; };
+		D17AF3CD260CE1120050731E /* ArticlesHorizontalList.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17AF3CC260CE1120050731E /* ArticlesHorizontalList.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -136,6 +138,8 @@
 		D17AF3A7260BEABB0050731E /* newsmock.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = newsmock.json; sourceTree = "<group>"; };
 		D17AF3AC260BF2090050731E /* NewsScreen+UIScrollViewDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NewsScreen+UIScrollViewDelegate.swift"; sourceTree = "<group>"; };
 		D17AF3B2260C5F1D0050731E /* UILabel+LineCount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UILabel+LineCount.swift"; sourceTree = "<group>"; };
+		D17AF3C4260CDB940050731E /* Collection+Safe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Collection+Safe.swift"; sourceTree = "<group>"; };
+		D17AF3CC260CE1120050731E /* ArticlesHorizontalList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticlesHorizontalList.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -374,6 +378,7 @@
 		D17AF2B2260B865B0050731E /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				D17AF3C3260CDB7C0050731E /* Collection */,
 				D17AF3B1260C5F080050731E /* UILabel */,
 				D17AF39B260BE3400050731E /* UIStackView */,
 				D17AF33A260B9D210050731E /* UIView */,
@@ -447,6 +452,7 @@
 			isa = PBXGroup;
 			children = (
 				D17AF370260BBEA30050731E /* ArticleCollectionViewCell.swift */,
+				D17AF3CC260CE1120050731E /* ArticlesHorizontalList.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -497,6 +503,14 @@
 				D17AF3B2260C5F1D0050731E /* UILabel+LineCount.swift */,
 			);
 			path = UILabel;
+			sourceTree = "<group>";
+		};
+		D17AF3C3260CDB7C0050731E /* Collection */ = {
+			isa = PBXGroup;
+			children = (
+				D17AF3C4260CDB940050731E /* Collection+Safe.swift */,
+			);
+			path = Collection;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -639,12 +653,14 @@
 				D17AF323260B9A140050731E /* APIClient.swift in Sources */,
 				D17AF25E260B6C690050731E /* ArticleDTO.swift in Sources */,
 				D17AF22E260B67950050731E /* NewsScreen+View.swift in Sources */,
+				D17AF3CD260CE1120050731E /* ArticlesHorizontalList.swift in Sources */,
 				D17AF24C260B6AC90050731E /* GetEverithing.swift in Sources */,
 				D17AF26A260B731C0050731E /* GetTopHeadlines.swift in Sources */,
 				D17AF281260B74430050731E /* APIRequestBuilder.swift in Sources */,
 				D17AF30A260B98DD0050731E /* RootView.swift in Sources */,
 				D17AF305260B98C10050731E /* Root+Presenter.swift in Sources */,
 				D17AF371260BBEA30050731E /* ArticleCollectionViewCell.swift in Sources */,
+				D17AF3C5260CDB950050731E /* Collection+Safe.swift in Sources */,
 				D17AF23E260B6A310050731E /* Keys.swift in Sources */,
 				D17AF238260B67BE0050731E /* NewsScreen+Presenter.swift in Sources */,
 				D17AF37A260BC64F0050731E /* ImageManager.swift in Sources */,
