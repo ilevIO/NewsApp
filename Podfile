@@ -6,7 +6,6 @@ target 'NewsApp' do
   use_frameworks!
 
   # Pods for NewsApp
-	pod 'TTTAttributedLabel'
   target 'NewsAppTests' do
     inherit! :search_paths
     # Pods for testing

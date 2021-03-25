@@ -7,7 +7,6 @@
 
 import Foundation
 import UIKit
-import TTTAttributedLabel
 
 class LabelWrapper: UIView {
     var label = UILabel()
