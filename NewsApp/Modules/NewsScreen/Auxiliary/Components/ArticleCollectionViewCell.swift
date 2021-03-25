@@ -57,22 +57,33 @@ class ArticleCollectionViewCell: UICollectionViewCell {
     }
     
     override func layoutSubviews() {
+        titleLabel.preferredMaxLayoutWidth = titleLabel.bounds.width
         super.layoutSubviews()
-        let arrangedSubviews = contentView.subviews//verticalStackView.arrangedSubviews
-        for arrangedSubview in arrangedSubviews {
+        let arrangedSubviews = contentView.subviews
+        for arrangedSubview in arrangedSubviews where !(arrangedSubview is UIImageView) {
             //arrangedSubview.frame.size.height = arrangedSubview.intrinsicContentSize.height
-            arrangedSubview.heightAnchor.constraint(greaterThanOrEqualToConstant: arrangedSubview.intrinsicContentSize.height).isActive = true
+            let heightConstraint =
+            (arrangedSubview.constraints.first {
+                $0.firstAnchor === arrangedSubview.heightAnchor || $0.secondAnchor === arrangedSubview.heightAnchor }
+                ?? arrangedSubview.heightAnchor.constraint(equalToConstant: max(arrangedSubview.intrinsicContentSize.height, 1))
+            )
+            heightConstraint.priority = .defaultHigh
+            heightConstraint.isActive = true
+            heightConstraint.constant = arrangedSubview.intrinsicContentSize.height
+            // heightAnchor.constraint(equalToConstant: arrangedSubview.intrinsicContentSize.height).isActive = true
         }
     }
     
     func configure(with articleModel: ArticleModel) {
         if self.articleModel?.url != articleModel.url {
             Current.api.subscriptions.cancelAndRelease(from: self)
+        } else {
+            return
         }
         
         self.articleModel = articleModel
-        //contentView.subviews.forEach({ $0.removeAllConstraints(); $0.removeFromSuperview() })
-        verticalStackView.removeAllArrangedSubviews()
+        contentView.subviews.forEach({ $0.removeAllConstraints(); $0.removeFromSuperview() })
+        //verticalStackView.removeAllArrangedSubviews()
         var arrangedSubviews = [UIView]()
         if let sourceName = articleModel.source?.name {
             sourceLabel.text = sourceName
@@ -84,6 +95,7 @@ class ArticleCollectionViewCell: UICollectionViewCell {
             arrangedSubviews.append(timeLabel)
             //verticalStackView.addArrangedSubview(timeLabel)
         }
+        titleLabel.preferredMaxLayoutWidth = contentView.bounds.width
         titleLabel.text = articleModel.title
         arrangedSubviews.append(titleLabel)
         //verticalStackView.addArrangedSubview(titleLabel)
@@ -114,23 +126,24 @@ class ArticleCollectionViewCell: UICollectionViewCell {
         var prevAnchor = contentView.topAnchor
         for arrangedSubview in arrangedSubviews {
             contentView.addSubview(arrangedSubview)
-            arrangedSubview.setContentHuggingPriority(.required, for: .vertical)
-            //
-            if arrangedSubview === self.imageView {
-                arrangedSubview.attach(to: contentView, left: 0, right: 0, activated: true)
-            } else {
-                arrangedSubview.attach(to: contentView, left: 8, right: 8)
-            }
-            //verticalStackView.arrangedSubviews.append(arrangedSubview)
+            
             arrangedSubview.translatesAutoresizingMaskIntoConstraints = false
+            if arrangedSubview === self.imageView {
+                arrangedSubview.attach(to: contentView, left: 0, right: 0)
+            } else {
+                //arrangedSubview.setContentHuggingPriority(.required, for: .vertical)
+                arrangedSubview.attach(to: contentView, left: 8, right: 8)
+                //arrangedSubview.heightAnchor.constraint(equalToConstant: max(arrangedSubview.intrinsicContentSize.height, 0)).isActive = true
+            }
             arrangedSubview.topAnchor.constraint(equalTo: prevAnchor, constant: 4).isActive = true
-            //arrangedSubview.heightAnchor.constraint(greaterThanOrEqualToConstant: arrangedSubview.intrinsicContentSize.height).isActive = true
+            
             prevAnchor = arrangedSubview.bottomAnchor
         }
         arrangedSubviews.last?.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: 0).isActive = true
-        //self.setNeedsLayout()
-        //imageView.heightAnchor.constraint(equalTo: contentView.widthAnchor, multiplier: 0.8).isActive = true
         
+        imageView.heightAnchor.constraint(equalTo: contentView.widthAnchor, multiplier: 0.8).isActive = true
+        self.setNeedsUpdateConstraints()
+        self.layoutSubviews()
         /*verticalStackView.arrangedSubviews.forEach({
             //$0.translatesAutoresizingMaskIntoConstraints = false
             //$0.widthAnchor.constraint(equalTo: verticalStackView.widthAnchor, multiplier: 1.0).isActive = true
@@ -157,17 +170,18 @@ class ArticleCollectionViewCell: UICollectionViewCell {
     }*/
     
     private func buildHierarchy() {
-        //contentView.addSubview(verticalStackView)
+        contentView.addSubview(verticalStackView)
     }
     
     private func configureSubviews() {
-        //UIStackView().axis = .vertical
-        //verticalStackView.distribution = .equalSpacing
+        verticalStackView.axis = .vertical
+        verticalStackView.distribution = .equalSpacing
        // verticalStackView.alignment = .top
         verticalStackView.spacing = 4
         //verticalStackView.alignment = .fill
         
         imageView.contentMode = .scaleAspectFill
+        titleLabel.preferredMaxLayoutWidth = contentView.bounds.width
         titleLabel.numberOfLines = 3
         descriptionLabel.numberOfLines = 3
         verticalStackView.clipsToBounds = false
@@ -180,7 +194,7 @@ class ArticleCollectionViewCell: UICollectionViewCell {
     private func setupLayout() {
         let verticalMargin: CGFloat = 12
         let horizontalMargin: CGFloat = 8
-        //contentView.fillLayout(with: verticalStackView, insets: .init(top: verticalMargin, left: horizontalMargin, bottom: verticalMargin, right: horizontalMargin))
+        contentView.fillLayout(with: verticalStackView, insets: .init(top: verticalMargin, left: horizontalMargin, bottom: verticalMargin, right: horizontalMargin))
     }
     
     private func setup() {

@@ -53,15 +53,15 @@ extension APIProvider.NewsGroup {
         let data = try! Data(contentsOf: url)
         
         var result = try! JSONDecoder().decode(Endpoints.News.GetEverything.Response.self, from: data)
-        if let page = params.page, let pageSize = params.pageSize {
-            result.articles = result.articles?
-                .enumerated()
-                .filter {
-                    ((page - 1) * pageSize..<(page * pageSize))
-                        .contains($0.offset)
-                }
-                .map { $0.element }
-        }
+        let page = params.page ?? (Int(params.to!.distance(to: Date())) / (24 * 60 * 60) + 1)
+        let pageSize = params.pageSize ?? 3
+        result.articles = result.articles?
+            .enumerated()
+            .filter {
+                ((page - 1) * pageSize..<(page * pageSize))
+                    .contains($0.offset)
+            }
+            .map { $0.element }
         completion?(FetchedEverything(with: result))
         return nil
     })

@@ -6,27 +6,28 @@
 //
 
 import Foundation
-import WebKit
+import UIKit
 
-class SimpleStackView: UIView {
-    var arrangedSubviews: [UIView] = .init()
-    var spacing: CGFloat = 4
-    var axis: NSLayoutConstraint.Axis = .vertical
-    func addArrangedSubview(_ subview: UIView) {
-        let maxAnchor = arrangedSubviews.last?.bottomAnchor ?? self.topAnchor
-        arrangedSubviews.append(subview)
-        self.addSubview(subview)
-        subview.translatesAutoresizingMaskIntoConstraints = false
-        subview.attach(to: self, left: 0, right: 0)
-        subview.topAnchor.constraint(equalTo: maxAnchor, constant: spacing).isActive = true
-    }
+class NewsLoader: SubscriberObject {
+    var subscriptionId: Int = UUID().hashValue
     
-    func removeAllArrangedSubviews() {
-        arrangedSubviews.forEach({
-            $0.removeAllConstraints()
-            $0.removeFromSuperview()
-        })
-        arrangedSubviews = []
+    let loadingLock = NSLock()
+    var loadedPages: Set<Int> = .init()
+    ///In progress
+    var loadingPages: Set<Int> = .init()
+    
+    var loadingFor: Int = 0
+    var loaded: Int = 0
+    
+    func loadNext(currentLoaded: Int, for timePeriod: ClosedRange<Date>, completion: ((FetchedEverything?) -> Void)?) {
+        loadingLock.lock()
+        defer {
+            loadingLock.unlock()
+        }
+        //guard currentLoaded >= loaded else { return }
+        Current.api.news.getEverything(.init(from: timePeriod.lowerBound, to: timePeriod.upperBound)) { news in
+            completion?(news)
+        }.flatMap({ Current.api.subscriptions.registerTask($0, for: self) })
     }
 }
 
@@ -37,21 +38,43 @@ extension NewsScreen {
         private(set) var subscriptionId = UUID().hashValue
         var news: [ArticleModel] = []
         
-        func searchQueryChanged(to query: String) {
-            
+        var newsLoader = NewsLoader()
+        
+        var currentPeriod: ClosedRange<Date> = {
+            Calendar.current.date(byAdding: .day, value: -1, to: Date())!...Date()
+        }()
+        
+        func refresh() {
+            currentPeriod = Calendar.current.date(byAdding: .day, value: -1, to: Date())!...Date()
+            news = []
         }
         
-        func newsCellTapped(at index: IndexPath) {
-            guard let _url = news[index.item].url, let url = URL(string: _url) else { return }
-            let webView = WKWebView()
-            let vc = UIViewController()
-            vc.view.fill(with: webView)
-            webView.load(.init(url: url))
-            Current.root?.rootView.navigationController?.pushViewController(vc, animated: true)
+        func searchQueryChanged(to query: String) {
+        }
+        
+        func scrollDidReachBounds(withOffset offset: CGFloat) {
+            newsLoader.loadNext(currentLoaded: news.count, for: currentPeriod) { [weak self] news in
+                guard let self = self, let news = news else { return }
+                let newArticles = news.articles.filter { fetchedArticle in
+                    !self.news.contains {
+                        fetchedArticle.url == $0.url
+                    }
+                }
+                if !news.articles.isEmpty {
+                    self.currentPeriod = Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.lowerBound)!...Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.upperBound)!
+                    self.news.append(contentsOf: newArticles.compactMap({ ArticleModel(with: $0) }))
+                    DispatchQueue.main.async {
+                        UIView.animate(withDuration: 0.3) {
+                            self.view?.update()
+                        }
+                    }
+                }
+            }
         }
         
         func fetchNews() {
-            let sevenDaysBack = Calendar.current.date(byAdding: .day, value: -7, to: .init())!
+            scrollDidReachBounds(withOffset: 0)
+            /*let sevenDaysBack = Calendar.current.date(byAdding: .day, value: -7, to: .init())!
             Current.api.news.getEverything(
                 .init(
                     q: "apple",
@@ -63,8 +86,8 @@ extension NewsScreen {
                     to: nil,
                     language: "en",
                     sortBy: nil,
-                    pageSize: 10,
-                    page: 1,
+                    pageSize: nil,
+                    page: nil,
                     country: nil,
                     category: nil
                 )
@@ -74,7 +97,7 @@ extension NewsScreen {
                 DispatchQueue.main.async {
                     self.view?.update()
                 }
-            }.flatMap({ Current.api.subscriptions.registerTask($0, for: self) })
+            }.flatMap({ Current.api.subscriptions.registerTask($0, for: self) })*/
         }
     }
 }

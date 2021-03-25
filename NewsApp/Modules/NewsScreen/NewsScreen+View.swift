@@ -16,8 +16,9 @@ extension NewsScreen {
     class View: UIViewController {
         var presenter: Presenter!
         
+        var isReloadingData = false
         //MARK: - Subviews
-        private var newsCollectionView: UICollectionView!
+        var newsCollectionView: UICollectionView!
         
         //MARK: - Setup
         
@@ -59,6 +60,7 @@ extension NewsScreen {
             newsCollectionView.delegate = self
             newsCollectionView.register(ArticleCollectionViewCell.self, forCellWithReuseIdentifier: "NewsCell")
             newsCollectionView.backgroundColor = .clear
+            newsCollectionView.alwaysBounceVertical = true
         }
         
         private func setupLayout() {
@@ -108,14 +110,15 @@ extension NewsScreen {
 
 extension NewsScreen.View: NewsScreenView {
     func update() {
-        newsCollectionView.reloadData()
+        UIView.animate(withDuration: 0.3) {
+            let currentNumber = self.newsCollectionView.numberOfItems(inSection: 0)
+            let toInsert = self.presenter.news.count - currentNumber
+            self.newsCollectionView.insertItems(at: (currentNumber..<currentNumber + toInsert).map({ IndexPath(item: $0, section: 0) }))
+        }
     }
 }
 
 extension NewsScreen.View: UICollectionViewDelegate, UICollectionViewDataSource {
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        presenter.newsCellTapped(at: indexPath)
-    }
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return presenter.news.count
     }
@@ -125,6 +128,7 @@ extension NewsScreen.View: UICollectionViewDelegate, UICollectionViewDataSource 
         cell.configure(with: presenter.news[indexPath.row])
         return cell
     }
+    
     
 }
 
