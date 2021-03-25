@@ -113,6 +113,9 @@ extension NewsScreen.View: NewsScreenView {
 }
 
 extension NewsScreen.View: UICollectionViewDelegate, UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        presenter.newsCellTapped(at: indexPath)
+    }
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return presenter.news.count
     }
@@ -122,7 +125,6 @@ extension NewsScreen.View: UICollectionViewDelegate, UICollectionViewDataSource 
         cell.configure(with: presenter.news[indexPath.row])
         return cell
     }
-    
     
 }
 

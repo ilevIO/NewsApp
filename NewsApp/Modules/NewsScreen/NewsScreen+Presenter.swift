@@ -6,6 +6,29 @@
 //
 
 import Foundation
+import WebKit
+
+class SimpleStackView: UIView {
+    var arrangedSubviews: [UIView] = .init()
+    var spacing: CGFloat = 4
+    var axis: NSLayoutConstraint.Axis = .vertical
+    func addArrangedSubview(_ subview: UIView) {
+        let maxAnchor = arrangedSubviews.last?.bottomAnchor ?? self.topAnchor
+        arrangedSubviews.append(subview)
+        self.addSubview(subview)
+        subview.translatesAutoresizingMaskIntoConstraints = false
+        subview.attach(to: self, left: 0, right: 0)
+        subview.topAnchor.constraint(equalTo: maxAnchor, constant: spacing).isActive = true
+    }
+    
+    func removeAllArrangedSubviews() {
+        arrangedSubviews.forEach({
+            $0.removeAllConstraints()
+            $0.removeFromSuperview()
+        })
+        arrangedSubviews = []
+    }
+}
 
 extension NewsScreen {
     class Presenter {
@@ -16,6 +39,15 @@ extension NewsScreen {
         
         func searchQueryChanged(to query: String) {
             
+        }
+        
+        func newsCellTapped(at index: IndexPath) {
+            guard let _url = news[index.item].url, let url = URL(string: _url) else { return }
+            let webView = WKWebView()
+            let vc = UIViewController()
+            vc.view.fill(with: webView)
+            webView.load(.init(url: url))
+            Current.root?.rootView.navigationController?.pushViewController(vc, animated: true)
         }
         
         func fetchNews() {
