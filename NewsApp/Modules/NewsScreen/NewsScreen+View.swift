@@ -21,10 +21,7 @@ extension NewsScreen {
         var prevTopBarVisibleHeight: CGFloat = 0
         
         var isReloadingData = false
-        var news: [ArticleModel] = [] {
-            didSet {
-            }
-        }
+        var news: [ArticleCellModel] { presenter.news }
         //MARK: - Subviews
         //var newsCollectionView: UICollectionView!
         var newsTableView: UITableView = .init()
@@ -76,6 +73,9 @@ extension NewsScreen {
         
         override func viewDidLayoutSubviews() {
             super.viewDidLayoutSubviews()
+            
+            //newsTableView.beginUpdates()
+            //newsTableView.endUpdates()
             //newsCollectionView.contentInset.left = 16
             //newsCollectionView.contentInset.right = 16
         }
@@ -143,9 +143,12 @@ extension NewsScreen {
         
         override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
             super.viewWillTransition(to: size, with: coordinator)
-            /*coordinator.animate(alongsideTransition: { context in
-                self.newsCollectionView.collectionViewLayout.invalidateLayout()
-            }, completion: nil)*/
+            coordinator.animate(alongsideTransition: { context in
+                //self.newsTableView.layoutIfNeeded()
+                //self.newsCollectionView.collectionViewLayout.invalidateLayout()
+            }, completion: { context in
+                self.newsTableView.visibleCells.forEach({ $0.layoutSubviews() })
+            })
         }
         
         init(with presenter: Presenter) {
@@ -163,8 +166,8 @@ extension NewsScreen {
 }
 
 extension NewsScreen.View: NewsScreenView {
-    func update(with news: [ArticleModel], forced: Bool) {
-        self.news = news
+    func update(with news: [ArticleCellModel], forced: Bool) {
+        //self.news = news
         refreshControl.endRefreshing()
         if !forced {
             let currentNumber = newsTableView.numberOfRows(inSection: 0)//self.newsCollectionView.numberOfItems(inSection: 0)

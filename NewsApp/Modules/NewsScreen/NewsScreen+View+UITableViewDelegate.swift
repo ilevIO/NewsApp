@@ -20,6 +20,11 @@ extension NewsScreen.View: UITableViewDelegate, UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: "NewsCell") as! ArticleTableViewCell
         cell.selectionStyle = .none
         cell.configure(with: news[indexPath.row])
+        cell.toggleExpanded = { [weak self] in
+            self?.presenter.news[indexPath.row].isExpanded.toggle()
+            tableView.beginUpdates()
+            tableView.endUpdates()
+        }
         return cell
     }
     

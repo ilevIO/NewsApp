@@ -25,7 +25,7 @@ extension NewsScreen {
         weak var view: NewsScreenView?
         
         private(set) var subscriptionId = UUID().hashValue
-        var news: [ArticleModel] = []
+        var news: [ArticleCellModel] = []
         
         var newsLoader = NewsLoader()
         
@@ -45,7 +45,12 @@ extension NewsScreen {
                 
                 if !news.articles.isEmpty {
                     self.currentPeriod = Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.lowerBound)!...Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.upperBound)!
-                    self.news.append(contentsOf: news.articles.compactMap({ ArticleModel(with: $0) }))
+                    self.news.append(
+                        contentsOf:
+                            news.articles.compactMap {
+                                ArticleCellModel(model: ArticleModel(with: $0), isExpanded: false)
+                            }
+                    )
                 }
                 DispatchQueue.main.async {
                     UIView.animate(withDuration: 0.3) {
@@ -64,7 +69,7 @@ extension NewsScreen {
         }
         
         func newsCellTapped(at index: IndexPath) {
-            guard let _url = news[index.item].url, let url = URL(string: _url) else { return }
+            guard let _url = news[index.item].model.url, let url = URL(string: _url) else { return }
             let webView = WKWebView()
             let vc = UIViewController()
             vc.view.fill(with: webView)
@@ -77,12 +82,12 @@ extension NewsScreen {
                 guard let self = self, let news = news else { return }
                 let newArticles = news.articles.filter { fetchedArticle in
                     !self.news.contains {
-                        fetchedArticle.url == $0.url
+                        fetchedArticle.url == $0.model.url
                     }
                 }
                 if !news.articles.isEmpty {
                     self.currentPeriod = Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.lowerBound)!...Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.upperBound)!
-                    self.news.append(contentsOf: newArticles.compactMap({ ArticleModel(with: $0) }))
+                    self.news.append(contentsOf: newArticles.compactMap {  ArticleCellModel(model: ArticleModel(with: $0), isExpanded: false) })
                 }
                 DispatchQueue.main.async {
                     UIView.animate(withDuration: 0.3) {

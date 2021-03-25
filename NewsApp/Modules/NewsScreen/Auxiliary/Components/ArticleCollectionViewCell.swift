@@ -33,6 +33,11 @@ struct ArticleModel {
     }
 }
 
+struct ArticleCellModel {
+    var model: ArticleModel
+    var isExpanded: Bool = false
+}
+
 class ArticleCollectionViewCell: UICollectionViewCell {
     let titleLabel: UILabel = .init()
     let descriptionLabel: UILabel = .init()
@@ -82,7 +87,8 @@ class ArticleCollectionViewCell: UICollectionViewCell {
         }
     }
     
-    func configure(with articleModel: ArticleModel) {
+    func configure(with articleCellModel: ArticleCellModel) {
+        let articleModel = articleCellModel.model
         if self.articleModel?.url != articleModel.url {
             Current.api.subscriptions.cancelAndRelease(from: self)
         } else {

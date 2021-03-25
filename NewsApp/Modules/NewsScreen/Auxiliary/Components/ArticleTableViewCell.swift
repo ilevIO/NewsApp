@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import TTTAttributedLabel
 
 class LabelWrapper: UIView {
     var label = UILabel()
@@ -54,29 +55,95 @@ class ArticleTableViewCell: UITableViewCell, SubscriberObject {
     var sourceLabel: UILabel = .init()
     var titleLabel: UILabel = .init()
     var timeLabel: UILabel = .init()
-    var descriptionLabel: UILabel = .init()
+    var descriptionLabel: UILabel = .init(frame: .zero)
     
     var labelsStackView = UIStackView()
+    
+    var toggleExpanded: (() -> Void)?
+    var isExpanded: Bool = false
+    var expandButton: UILabel?
+    
+    var expandButtonAdded: Bool { expandButton != nil }
+    
+    func setupExpandButton() {
+        if !expandButtonAdded {
+            
+            let expandButton = UILabel()
+            self.expandButton = expandButton
+            expandButton.isUserInteractionEnabled = true
+            let descriptionTapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(descriptionTapped(_:)))
+            descriptionTapGestureRecognizer.cancelsTouchesInView = true
+            expandButton.addGestureRecognizer(descriptionTapGestureRecognizer)
+            
+            expandButton.isUserInteractionEnabled = true
+            expandButton.text = isExpanded ? "Collapse" : "Expand"
+            expandButton.backgroundColor = .blue
+            
+            if let index = labelsStackView.arrangedSubviews.firstIndex(of: descriptionLabel) {
+                labelsStackView.insertArrangedSubview(expandButton, at: index + 1)
+            }
+            labelsStackView.layoutIfNeeded()
+        }
+    }
+    
+    func hideExpandButton() {
+        if let expandButton = self.expandButton {
+            labelsStackView.removeArrangedSubview(expandButton)
+            expandButton.removeFromSuperview()
+            self.expandButton = nil
+            labelsStackView.layoutIfNeeded()
+        }
+    }
     
     override func layoutSubviews() {
         super.layoutSubviews()
         
-        if let attributedText = self.descriptionLabel.attributedText, self.descriptionLabel.isTruncated {
-            let appendix = " " + "Show more"
+        if self.descriptionLabel.isTruncated {
+            setupExpandButton()
+            /*descriptionLabel.attributedTruncationToken = NSAttributedString(
+                string: "... Show more",
+                attributes: [
+                    .font: UIFont.systemFont(ofSize: 14, weight: .semibold),
+                    .foregroundColor: UIColor.blue
+                ]
+            )*/
+            /*let appendix = " " + "Show more"
             let string = attributedText.string
             let text = String(string[..<string.index(string.endIndex, offsetBy: -appendix.count)] + appendix)
             let attributedString = NSMutableAttributedString(string: text)
             attributedString.setAttributes([.foregroundColor: UIColor.blue], range: .init(location: text.count - appendix.count, length: appendix.count))
-            self.descriptionLabel.attributedText = attributedString
+            self.descriptionLabel.attributedText = attributedString*/
+        } else if !isExpanded {
+            hideExpandButton()
         }
     }
     
-    func configure(with articleModel: ArticleModel) {
+    override func updateConstraints() {
+        super.updateConstraints()
+    }
+    
+    @objc func descriptionTapped(_ recognizer: UITapGestureRecognizer) {
+        let location = recognizer.location(in: descriptionLabel)
+        if (isExpanded || descriptionLabel.isTruncated) && true || location.y > descriptionLabel.bounds.height - descriptionLabel.font.lineHeight {
+            isExpanded.toggle()
+            descriptionLabel.numberOfLines = isExpanded ? 0 : 3
+            
+            expandButton?.text = isExpanded ? "Collapse" : "Expand"
+            descriptionLabel.layoutIfNeeded()
+            toggleExpanded?()
+            //descriptionLabel.heightAnchor.constraint(equalToConstant: descriptionLabel.intrinsicContentSize.height).isActive = true
+        }
+    }
+    
+    func configure(with articleCellModel: ArticleCellModel) {
+        let articleModel = articleCellModel.model
         if self.articleModel?.url != articleModel.url {
             Current.api.subscriptions.cancelAndRelease(from: self)
         } else {
             return
         }
+        
+        hideExpandButton()
         
         self.articleModel = articleModel
         labelsStackView.arrangedSubviews.forEach {
@@ -113,7 +180,8 @@ class ArticleTableViewCell: UITableViewCell, SubscriberObject {
         
         titleLabel.numberOfLines = 3
         titleLabel.adjustsFontSizeToFitWidth = true
-        descriptionLabel.numberOfLines = 3
+        self.isExpanded = articleCellModel.isExpanded
+        descriptionLabel.numberOfLines = isExpanded ? 0 : 3
         previewImageView.image = nil
         previewImageView.clipsToBounds = true
         //verticalStackView.addArrangedSubview(imageView)
@@ -180,6 +248,10 @@ class ArticleTableViewCell: UITableViewCell, SubscriberObject {
         
         titleLabel.numberOfLines = 3
         descriptionLabel.numberOfLines = 3
+        descriptionLabel.isUserInteractionEnabled = true
+        let descriptionTapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(descriptionTapped(_:)))
+        descriptionTapGestureRecognizer.cancelsTouchesInView = true
+        descriptionLabel.addGestureRecognizer(descriptionTapGestureRecognizer)
     }
     
     private func setupLayout() {
