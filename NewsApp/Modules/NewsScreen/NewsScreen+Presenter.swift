@@ -14,6 +14,10 @@ extension NewsScreen {
         private(set) var subscriptionId = UUID().hashValue
         var news: [ArticleModel] = []
         
+        func searchQueryChanged(to query: String) {
+            
+        }
+        
         func fetchNews() {
             let sevenDaysBack = Calendar.current.date(byAdding: .day, value: -7, to: .init())!
             Current.api.news.getEverything(

@@ -22,27 +22,36 @@ extension NewsScreen {
         //MARK: - Setup
         
         private func initializeSubviews() {
-            /*let size = NSCollectionLayoutSize(
-                        widthDimension: NSCollectionLayoutDimension.fractionalWidth(1),
-                        heightDimension: NSCollectionLayoutDimension.estimated(200)
-                    )
+            let size = NSCollectionLayoutSize(
+                widthDimension: NSCollectionLayoutDimension.fractionalWidth(1),
+                heightDimension: NSCollectionLayoutDimension.estimated(200)
+            )
             let item = NSCollectionLayoutItem(layoutSize: size)
             let group = NSCollectionLayoutGroup.horizontal(layoutSize: size, subitem: item, count: 2)
             group.interItemSpacing = .fixed(12)
             let section = NSCollectionLayoutSection(group: group)
-            section.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10)
-            section.interGroupSpacing = 10
+            section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 10)
+            section.interGroupSpacing = 8
             
-            let layout = UICollectionViewCompositionalLayout(section: section)*/
-            let layout = UICollectionViewFlowLayout()
-            layout.scrollDirection = .vertical
-            layout.sectionInset = .init(top: 0, left: 16, bottom: 0, right: 16)
+            let layout = UICollectionViewCompositionalLayout(section: section)
+            /*let layout = UICollectionViewFlowLayout()
+            layout.scrollDirection = .vertical*/
+            //layout.estimatedItemSize = .init(width: 180, height: 600)
+            //layout.sectionInset = .init(top: 0, left: 16, bottom: 0, right: 16)
             //layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
             newsCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+            //newsCollectionView.contentInset.left = 16
+            //newsCollectionView.contentInset.right = 16
         }
         
         private func buildHierarchy() {
             view.addSubview(newsCollectionView)
+        }
+        
+        override func viewDidLayoutSubviews() {
+            super.viewDidLayoutSubviews()
+            //newsCollectionView.contentInset.left = 16
+            //newsCollectionView.contentInset.right = 16
         }
         
         private func configureSubviews() {
@@ -53,7 +62,9 @@ extension NewsScreen {
         }
         
         private func setupLayout() {
-            view.fillLayout(with: newsCollectionView)
+            newsCollectionView.translatesAutoresizingMaskIntoConstraints = false
+            newsCollectionView.attach(to: view.safeAreaLayoutGuide, left: 0, right: 0)
+            newsCollectionView.attach(to: self.view, top: 0, bottom: 0)
         }
         
         private func setup() {
@@ -74,6 +85,12 @@ extension NewsScreen {
             self.view.backgroundColor = .white
         }
         
+        override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+            super.viewWillTransition(to: size, with: coordinator)
+            coordinator.animate(alongsideTransition: { context in
+                self.newsCollectionView.collectionViewLayout.invalidateLayout()
+            }, completion: nil)
+        }
         
         init(with presenter: Presenter) {
             self.presenter = presenter

@@ -43,14 +43,24 @@ class ArticleCollectionViewCell: UICollectionViewCell {
     
     let verticalStackView: UIStackView = .init()
     
+    let showMoreButton = UIButton()
+    
     var tapAction: (() -> Void)?
     private let id = UUID().hashValue
     
     private var articleModel: ArticleModel?
+    
+    func checkLines() {
+        if descriptionLabel.requiredNumberOfLines() > descriptionLabel.numberOfLines {
+            
+        }
+    }
+    
     func configure(with articleModel: ArticleModel) {
         if self.articleModel?.url != articleModel.url {
             Current.api.subscriptions.cancelAndRelease(from: self)
         }
+        
         self.articleModel = articleModel
         verticalStackView.removeAllArrangedSubviews()
         
@@ -64,9 +74,10 @@ class ArticleCollectionViewCell: UICollectionViewCell {
         }
         titleLabel.text = articleModel.title
         verticalStackView.addArrangedSubview(titleLabel)
-        
-        verticalStackView.addArrangedSubview(imageView)
+        //imageView.heightAnchor.constraint(greaterThanOrEqualToConstant: 80).isActive = true
         imageView.image = nil
+        imageView.clipsToBounds = true
+        verticalStackView.addArrangedSubview(imageView)
         if let urlToImage = articleModel.urlToImage {
             imageView.backgroundColor = .lightGray
             //Keep downloading image after deinit for caching
@@ -86,21 +97,32 @@ class ArticleCollectionViewCell: UICollectionViewCell {
             self.imageView.image = .strokedCheckmark
         }
         
+        imageView.heightAnchor.constraint(equalTo: contentView.widthAnchor, multiplier: 0.8).isActive = true
+        
         verticalStackView.arrangedSubviews.forEach({
-            $0.setContentHuggingPriority(.required, for: .vertical)
-            $0.translatesAutoresizingMaskIntoConstraints = false
-            $0.widthAnchor.constraint(equalTo: verticalStackView.widthAnchor, multiplier: 1.0).isActive = true
-            $0.heightAnchor.constraint(greaterThanOrEqualToConstant: $0.intrinsicContentSize.height).isActive = true
+            //$0.translatesAutoresizingMaskIntoConstraints = false
+            //$0.widthAnchor.constraint(equalTo: verticalStackView.widthAnchor, multiplier: 1.0).isActive = true
+            if !($0 is UIImageView) {
+                //$0.setContentHuggingPriority(.defaultHigh, for: .vertical)
+                //$0.frame.size.height = $0.intrinsicContentSize.height
+                $0.heightAnchor.constraint(greaterThanOrEqualToConstant: $0.intrinsicContentSize.height).isActive = true
+            }
         })
+        
+        
+        /*descriptionLabel.heightAnchor.constraint(greaterThanOrEqualToConstant: 1).isActive = true
+        titleLabel.heightAnchor.constraint(greaterThanOrEqualToConstant: 1).isActive = true
+        timeLabel.heightAnchor.constraint(greaterThanOrEqualToConstant: 1).isActive = true*/
+        //self.widthAnchor.constraint(lessThanOrEqualToConstant: 180).isActive = true
         //verticalStackView.backgroundColor = .blue
         //titleLabel.backgroundColor = .red
         
         //titleLabel.widthAnchor.constraint(equalTo: verticalStackView.widthAnchor, multiplier: 1.0).isActive = true
     }
     
-    override func systemLayoutSizeFitting(_ targetSize: CGSize, withHorizontalFittingPriority horizontalFittingPriority: UILayoutPriority, verticalFittingPriority: UILayoutPriority) -> CGSize {
-            return contentView.systemLayoutSizeFitting(CGSize(width: self.bounds.size.width, height: 1))
-        }
+    /*override func systemLayoutSizeFitting(_ targetSize: CGSize, withHorizontalFittingPriority horizontalFittingPriority: UILayoutPriority, verticalFittingPriority: UILayoutPriority) -> CGSize {
+        return contentView.systemLayoutSizeFitting(CGSize(width: self.bounds.size.width, height: 1))
+    }*/
     
     private func buildHierarchy() {
         contentView.addSubview(verticalStackView)
@@ -109,17 +131,18 @@ class ArticleCollectionViewCell: UICollectionViewCell {
     private func configureSubviews() {
         verticalStackView.axis = .vertical
         verticalStackView.distribution = .equalSpacing
-        verticalStackView.alignment = .leading
+       // verticalStackView.alignment = .top
         verticalStackView.spacing = 4
+        //verticalStackView.alignment = .fill
+        
         imageView.contentMode = .scaleAspectFill
-        titleLabel.numberOfLines = 0
-        descriptionLabel.numberOfLines = 0
+        titleLabel.numberOfLines = 3
+        descriptionLabel.numberOfLines = 3
         verticalStackView.clipsToBounds = false
-        imageView.heightAnchor.constraint(lessThanOrEqualToConstant: 120).isActive = true
-        imageView.heightAnchor.constraint(greaterThanOrEqualToConstant: 80).isActive = true
-        descriptionLabel.heightAnchor.constraint(greaterThanOrEqualToConstant: 1).isActive = true
+        //imageView.heightAnchor.constraint(greaterThanOrEqualToConstant: 80).isActive = true
+        /*descriptionLabel.heightAnchor.constraint(greaterThanOrEqualToConstant: 1).isActive = true
         titleLabel.heightAnchor.constraint(greaterThanOrEqualToConstant: 1).isActive = true
-        timeLabel.heightAnchor.constraint(greaterThanOrEqualToConstant: 1).isActive = true
+        timeLabel.heightAnchor.constraint(greaterThanOrEqualToConstant: 1).isActive = true*/
     }
     
     private func setupLayout() {

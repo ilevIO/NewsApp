@@ -52,7 +52,16 @@ extension APIProvider.NewsGroup {
         let url = URL(fileURLWithPath: path)
         let data = try! Data(contentsOf: url)
         
-        let result = try! JSONDecoder().decode(Endpoints.News.GetEverything.Response.self, from: data)
+        var result = try! JSONDecoder().decode(Endpoints.News.GetEverything.Response.self, from: data)
+        if let page = params.page, let pageSize = params.pageSize {
+            result.articles = result.articles?
+                .enumerated()
+                .filter {
+                    ((page - 1) * pageSize..<(page * pageSize))
+                        .contains($0.offset)
+                }
+                .map { $0.element }
+        }
         completion?(FetchedEverything(with: result))
         return nil
     })

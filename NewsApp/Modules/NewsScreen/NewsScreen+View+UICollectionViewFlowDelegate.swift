@@ -7,8 +7,8 @@
 
 import UIKit
 
-extension NewsScreen.View: UICollectionViewDelegateFlowLayout {
-    func collectionView(
+/*extension NewsScreen.View: UICollectionViewDelegateFlowLayout {
+    /*func collectionView(
         _ collectionView: UICollectionView,
         layout collectionViewLayout: UICollectionViewLayout,
         sizeForItemAt indexPath: IndexPath
@@ -31,8 +31,9 @@ extension NewsScreen.View: UICollectionViewDelegateFlowLayout {
             //View width - 2 horizontal margins and 1 center inset of 16pt for 2 columns
             return .init(width: (self.view.frame.width - (16 * 2 + 16)) / 2, height: 252)
         }*/
-        return .init(width: (self.view.frame.width - (16 * 2 + 16)) / 2, height: 252)
-    }
+        let horizontalMargin: CGFloat = 16 + view.safeAreaInsets.left + collectionView.contentInset.left
+        return .init(width: (self.view.frame.width - (horizontalMargin) * 2 + 16) / 2, height: 252)
+    }*/
     
     func size(collectionView: UICollectionView, indexPath: IndexPath) -> CGSize {
         /*let productCell = ProductCellView()
@@ -56,3 +57,4 @@ extension NewsScreen.View: UICollectionViewDelegateFlowLayout {
         return .init(width: 120, height: 300)//productCell.frame.size
     }
 }
+*/
