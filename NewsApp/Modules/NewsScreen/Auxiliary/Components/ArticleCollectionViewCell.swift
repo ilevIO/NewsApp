@@ -56,28 +56,42 @@ class ArticleCollectionViewCell: UICollectionViewCell {
         }
     }
     
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        let arrangedSubviews = contentView.subviews
+        for arrangedSubview in arrangedSubviews {
+            //arrangedSubview.frame.size.height = arrangedSubview.intrinsicContentSize.height
+            arrangedSubview.heightAnchor.constraint(greaterThanOrEqualToConstant: arrangedSubview.intrinsicContentSize.height).isActive = true
+        }
+    }
+    
     func configure(with articleModel: ArticleModel) {
         if self.articleModel?.url != articleModel.url {
             Current.api.subscriptions.cancelAndRelease(from: self)
         }
         
         self.articleModel = articleModel
-        verticalStackView.removeAllArrangedSubviews()
-        
+        contentView.subviews.forEach({ $0.removeAllConstraints(); $0.removeFromSuperview() })
+        //verticalStackView.removeAllArrangedSubviews()
+        var arrangedSubviews = [UIView]()
         if let sourceName = articleModel.source?.name {
             sourceLabel.text = sourceName
-            verticalStackView.addArrangedSubview(sourceLabel)
+            //verticalStackView.addArrangedSubview(sourceLabel)
+            arrangedSubviews.append(sourceLabel)
         }
         if let time = articleModel.publishedAt {
             timeLabel.text = time
-            verticalStackView.addArrangedSubview(timeLabel)
+            arrangedSubviews.append(timeLabel)
+            //verticalStackView.addArrangedSubview(timeLabel)
         }
         titleLabel.text = articleModel.title
-        verticalStackView.addArrangedSubview(titleLabel)
+        arrangedSubviews.append(titleLabel)
+        //verticalStackView.addArrangedSubview(titleLabel)
         //imageView.heightAnchor.constraint(greaterThanOrEqualToConstant: 80).isActive = true
         imageView.image = nil
         imageView.clipsToBounds = true
-        verticalStackView.addArrangedSubview(imageView)
+        //verticalStackView.addArrangedSubview(imageView)
+        arrangedSubviews.append(imageView)
         if let urlToImage = articleModel.urlToImage {
             imageView.backgroundColor = .lightGray
             //Keep downloading image after deinit for caching
@@ -97,9 +111,25 @@ class ArticleCollectionViewCell: UICollectionViewCell {
             self.imageView.image = .strokedCheckmark
         }
         
+        var prevAnchor = contentView.topAnchor
+        for arrangedSubview in arrangedSubviews {
+            contentView.addSubview(arrangedSubview)
+            arrangedSubview.setContentHuggingPriority(.required, for: .vertical)
+            arrangedSubview.translatesAutoresizingMaskIntoConstraints = false
+            if arrangedSubview === self.imageView {
+                arrangedSubview.attach(to: contentView, left: 0, right: 0)
+            } else {
+                arrangedSubview.attach(to: contentView, left: 8, right: 8)
+            }
+            arrangedSubview.topAnchor.constraint(equalTo: prevAnchor, constant: 4).isActive = true
+            arrangedSubview.heightAnchor.constraint(greaterThanOrEqualToConstant: arrangedSubview.intrinsicContentSize.height).isActive = true
+            prevAnchor = arrangedSubview.bottomAnchor
+        }
+        arrangedSubviews.last?.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: 0).isActive = true
+        
         imageView.heightAnchor.constraint(equalTo: contentView.widthAnchor, multiplier: 0.8).isActive = true
         
-        verticalStackView.arrangedSubviews.forEach({
+        /*verticalStackView.arrangedSubviews.forEach({
             //$0.translatesAutoresizingMaskIntoConstraints = false
             //$0.widthAnchor.constraint(equalTo: verticalStackView.widthAnchor, multiplier: 1.0).isActive = true
             if !($0 is UIImageView) {
@@ -107,7 +137,7 @@ class ArticleCollectionViewCell: UICollectionViewCell {
                 //$0.frame.size.height = $0.intrinsicContentSize.height
                 $0.heightAnchor.constraint(greaterThanOrEqualToConstant: $0.intrinsicContentSize.height).isActive = true
             }
-        })
+        })*/
         
         
         /*descriptionLabel.heightAnchor.constraint(greaterThanOrEqualToConstant: 1).isActive = true
