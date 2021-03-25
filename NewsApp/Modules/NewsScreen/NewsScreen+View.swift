@@ -14,7 +14,11 @@ extension NewsScreen {
     }
     
     class View: UIViewController {
+        static let topBarHeight: CGFloat = 56
         var presenter: Presenter!
+        
+        var scrollState: ScrollState = .init()
+        var prevTopBarVisibleHeight: CGFloat = 0
         
         var isReloadingData = false
         var news: [ArticleModel] = [] {
@@ -22,11 +26,19 @@ extension NewsScreen {
             }
         }
         //MARK: - Subviews
-        var newsCollectionView: UICollectionView!
+        //var newsCollectionView: UICollectionView!
+        var newsTableView: UITableView = .init()
         var refreshControl = UIRefreshControl()
+        
+        var topBar = UIView()
+        var searchBar = UISearchBar()
+        
+        //MARK: - Constraints
+        var topBarTopConstraint: NSLayoutConstraint!
+        
         //MARK: - Setup
         
-        private func initializeSubviews() {
+        /*private func initializeSubviews() {
             let size = NSCollectionLayoutSize(
                 widthDimension: NSCollectionLayoutDimension.fractionalWidth(1),
                 heightDimension: NSCollectionLayoutDimension.estimated(200)
@@ -47,15 +59,19 @@ extension NewsScreen {
             newsCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
             //newsCollectionView.contentInset.left = 16
             //newsCollectionView.contentInset.right = 16
-        }
+        }*/
         
         @objc func refreshPulled(_ sender: UIRefreshControl) {
             presenter.refresh()
         }
         
         private func buildHierarchy() {
-            view.addSubview(newsCollectionView)
-            newsCollectionView.addSubview(refreshControl)
+            /*view.addSubview(newsCollectionView)
+            newsCollectionView.addSubview(refreshControl)*/
+            view.addSubview(newsTableView)
+            newsTableView.addSubview(refreshControl)
+            view.addSubview(topBar)
+            topBar.addSubview(searchBar)
         }
         
         override func viewDidLayoutSubviews() {
@@ -65,23 +81,50 @@ extension NewsScreen {
         }
         
         private func configureSubviews() {
-            newsCollectionView.dataSource = self
+            topBar.backgroundColor = .systemBackground
+            /*newsCollectionView.dataSource = self
             newsCollectionView.delegate = self
             newsCollectionView.register(ArticleCollectionViewCell.self, forCellWithReuseIdentifier: "NewsCell")
             newsCollectionView.backgroundColor = .clear
-            newsCollectionView.alwaysBounceVertical = true
+            newsCollectionView.alwaysBounceVertical = true*/
+            newsTableView.register(ArticleTableViewCell.self, forCellReuseIdentifier: "NewsCell")
+            newsTableView.separatorStyle = .none
+            newsTableView.allowsSelection = true
+            newsTableView.delegate = self
+            newsTableView.dataSource = self
             
             refreshControl.addTarget(self, action: #selector(refreshPulled(_:)), for: .valueChanged)
+            
+            searchBar.widthAnchor.constraint(equalToConstant: 200).isActive = true
+            searchBar.barStyle = .default
+            searchBar.backgroundImage = .init()
+            searchBar.delegate = self
         }
         
         private func setupLayout() {
-            newsCollectionView.translatesAutoresizingMaskIntoConstraints = false
+            let horizontalMargin: CGFloat = 8
+            let verticalInset: CGFloat = 8
+            
+            topBar.translatesAutoresizingMaskIntoConstraints = false
+            topBar.attach(to: self.view, left: 0, right: 0)
+            topBarTopConstraint = topBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: Self.topBarHeight)
+            topBarTopConstraint.isActive = true
+            topBar.topAnchor.constraint(lessThanOrEqualTo: view.topAnchor).isActive = true
+            searchBar.translatesAutoresizingMaskIntoConstraints = false
+            searchBar.attach(to: topBar, left: horizontalMargin, bottom: verticalInset)
+            
+            /*newsCollectionView.translatesAutoresizingMaskIntoConstraints = false
             newsCollectionView.attach(to: view.safeAreaLayoutGuide, left: 0, right: 0)
-            newsCollectionView.attach(to: self.view, top: 0, bottom: 0)
+            newsCollectionView.attach(to: self.view, top: 0, bottom: 0)*/
+            
+            newsTableView.translatesAutoresizingMaskIntoConstraints = false
+            newsTableView.attach(to: view.safeAreaLayoutGuide, left: 0, right: 0)
+            newsTableView.attach(to: self.view, bottom: 0)
+            newsTableView.topAnchor.constraint(equalTo: topBar.bottomAnchor, constant: 0).isActive = true
         }
         
         private func setup() {
-            initializeSubviews()
+            //initializeSubviews()
             buildHierarchy()
             configureSubviews()
             setupLayout()
@@ -100,9 +143,9 @@ extension NewsScreen {
         
         override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
             super.viewWillTransition(to: size, with: coordinator)
-            coordinator.animate(alongsideTransition: { context in
+            /*coordinator.animate(alongsideTransition: { context in
                 self.newsCollectionView.collectionViewLayout.invalidateLayout()
-            }, completion: nil)
+            }, completion: nil)*/
         }
         
         init(with presenter: Presenter) {
@@ -124,14 +167,17 @@ extension NewsScreen.View: NewsScreenView {
         self.news = news
         refreshControl.endRefreshing()
         if !forced {
-            let currentNumber = self.newsCollectionView.numberOfItems(inSection: 0)
+            let currentNumber = newsTableView.numberOfRows(inSection: 0)//self.newsCollectionView.numberOfItems(inSection: 0)
             let toInsert = news.count - currentNumber
             guard toInsert > 0 else { return }
             UIView.animate(withDuration: 0.3) {
-                self.newsCollectionView.insertItems(at: (currentNumber..<currentNumber + toInsert).map({ IndexPath(item: $0, section: 0) }))
+                self.newsTableView.insertRows(at: (currentNumber..<currentNumber + toInsert).map({ IndexPath(item: $0, section: 0) }), with: .automatic)//newsCollectionView.insertItems(at: (currentNumber..<currentNumber + toInsert).map({ IndexPath(item: $0, section: 0) }))
             }
         } else {
-            self.newsCollectionView.reloadData()
+            UIView.animate(withDuration: 0.3) {
+                self.newsTableView.reloadData()
+            }
+            //self.newsCollectionView.reloadData()
         }
     }
 }

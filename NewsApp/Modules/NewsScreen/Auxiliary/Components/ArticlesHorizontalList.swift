@@ -56,6 +56,10 @@ class ArticleCellView: UIView {
         
         setup()
     }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }
 
 class SimpleArticleCollectionViewCell: UICollectionViewCell {
@@ -103,7 +107,7 @@ class ArticlesHorizontalListView: UIView {
         categoryTitleLabel.translatesAutoresizingMaskIntoConstraints = false
         categoryTitleLabel.attach(to: self, left: horizontalMargin, top: verticalMargin)
         categoryTitleLabel.setContentHuggingPriority(.required, for: .vertical)
-        
+        /*
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.topAnchor.constraint(equalTo: categoryTitleLabel.bottomAnchor, constant: verticalInset).isActive = true
         scrollView.attach(to: self, left: 0, right: 0, bottom: 0)
@@ -111,7 +115,7 @@ class ArticlesHorizontalListView: UIView {
         stackView.translatesAutoresizingMaskIntoConstraints = false
         stackView.attach(to: scrollView, left: 0, right: 0)
         stackView.topAnchor.constraint(equalTo: self.topAnchor, constant: 0).isActive = true
-        stackView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: 0).isActive = true
+        stackView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: 0).isActive = true*/
     }
     
     private func setup() {

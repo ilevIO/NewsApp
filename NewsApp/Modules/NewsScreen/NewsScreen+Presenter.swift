@@ -8,25 +8,13 @@
 import Foundation
 import UIKit
 import WebKit
+import Combine
 
 class NewsLoader: SubscriberObject {
     var subscriptionId: Int = UUID().hashValue
     
-    let loadingLock = NSLock()
-    var loadedPages: Set<Int> = .init()
-    ///In progress
-    var loadingPages: Set<Int> = .init()
-    
-    var loadingFor: Int = 0
-    var loaded: Int = 0
-    
-    func loadNext(currentLoaded: Int, for timePeriod: ClosedRange<Date>, completion: ((FetchedEverything?) -> Void)?) {
-        loadingLock.lock()
-        defer {
-            loadingLock.unlock()
-        }
-        //guard currentLoaded >= loaded else { return }
-        Current.api.news.getEverything(.init(from: timePeriod.lowerBound, to: timePeriod.upperBound)) { news in
+    func loadNext(query: String? = nil, currentLoaded: Int, for timePeriod: ClosedRange<Date>, completion: ((FetchedEverything?) -> Void)?) {
+        Current.api.news.getEverything(.init(q: query, from: timePeriod.lowerBound, to: timePeriod.upperBound)) { news in
             completion?(news)
         }.flatMap({ Current.api.subscriptions.registerTask($0, for: self) })
     }
@@ -45,11 +33,14 @@ extension NewsScreen {
             Calendar.current.date(byAdding: .day, value: -1, to: Date())!...Date()
         }()
         
+        var query = ""
+        var lastQueryTask: Cancellable?
+        
         func refresh() {
             currentPeriod = Calendar.current.date(byAdding: .day, value: -1, to: Date())!...Date()
             news = []
             //self.currentPeriod = Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.lowerBound)!...Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.upperBound)!
-            newsLoader.loadNext(currentLoaded: 0, for: currentPeriod) { [weak self] news in
+            newsLoader.loadNext(query: query.isEmpty ? nil : query, currentLoaded: 0, for: currentPeriod) { [weak self] news in
                 guard let self = self, let news = news else { return }
                 
                 if !news.articles.isEmpty {
@@ -65,7 +56,13 @@ extension NewsScreen {
         }
         
         func searchQueryChanged(to query: String) {
+            lastQueryTask?.cancel()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                self.query = query
+                self.refresh()
+            }
         }
+        
         func newsCellTapped(at index: IndexPath) {
             guard let _url = news[index.item].url, let url = URL(string: _url) else { return }
             let webView = WKWebView()
@@ -76,7 +73,7 @@ extension NewsScreen {
         }
         
         func loadNext() {
-            newsLoader.loadNext(currentLoaded: news.count, for: currentPeriod) { [weak self] news in
+            newsLoader.loadNext(query: query.isEmpty ? nil : query, currentLoaded: news.count, for: currentPeriod) { [weak self] news in
                 guard let self = self, let news = news else { return }
                 let newArticles = news.articles.filter { fetchedArticle in
                     !self.news.contains {
@@ -93,6 +90,10 @@ extension NewsScreen {
                     }
                 }
             }
+        }
+        
+        func searchValueChanged(string: String) {
+            
         }
         
         func scrollDidReachBounds(withOffset offset: CGFloat) {

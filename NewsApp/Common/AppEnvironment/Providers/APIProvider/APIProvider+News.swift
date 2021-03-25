@@ -57,9 +57,10 @@ extension APIProvider.NewsGroup {
         let pageSize = params.pageSize ?? 3
         result.articles = result.articles?
             .enumerated()
-            .filter {
+            .filter { article in
                 ((page - 1) * pageSize..<(page * pageSize))
-                    .contains($0.offset)
+                    .contains(article.offset) &&
+                    (params.q.flatMap({ article.element.title?.contains($0) }) ?? true)
             }
             .map { $0.element }
         completion?(FetchedEverything(with: result))

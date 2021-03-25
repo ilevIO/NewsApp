@@ -57,10 +57,13 @@
 		D17AF397260BCF910050731E /* NewsScreen+View+UICollectionViewFlowDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17AF396260BCF910050731E /* NewsScreen+View+UICollectionViewFlowDelegate.swift */; };
 		D17AF39D260BE3510050731E /* UIStackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17AF39C260BE3510050731E /* UIStackView.swift */; };
 		D17AF3A8260BEABC0050731E /* newsmock.json in Resources */ = {isa = PBXBuildFile; fileRef = D17AF3A7260BEABB0050731E /* newsmock.json */; };
-		D17AF3AD260BF2090050731E /* NewsScreen+UIScrollViewDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17AF3AC260BF2090050731E /* NewsScreen+UIScrollViewDelegate.swift */; };
+		D17AF3AD260BF2090050731E /* NewsScreen+View+UIScrollViewDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17AF3AC260BF2090050731E /* NewsScreen+View+UIScrollViewDelegate.swift */; };
 		D17AF3B3260C5F1D0050731E /* UILabel+LineCount.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17AF3B2260C5F1D0050731E /* UILabel+LineCount.swift */; };
 		D17AF3C5260CDB950050731E /* Collection+Safe.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17AF3C4260CDB940050731E /* Collection+Safe.swift */; };
 		D17AF3CD260CE1120050731E /* ArticlesHorizontalList.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17AF3CC260CE1120050731E /* ArticlesHorizontalList.swift */; };
+		D17AF3D2260CE79D0050731E /* ArticleTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17AF3D1260CE79C0050731E /* ArticleTableViewCell.swift */; };
+		D17AF3DA260CEC320050731E /* NewsScreen+View+UITableViewDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17AF3D9260CEC320050731E /* NewsScreen+View+UITableViewDelegate.swift */; };
+		D17AF3E2260D0F0D0050731E /* NewsScreen+View+UISearchBarDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17AF3E1260D0F0D0050731E /* NewsScreen+View+UISearchBarDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -135,11 +138,14 @@
 		D17AF391260BCD7D0050731E /* UIView+Shadow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+Shadow.swift"; sourceTree = "<group>"; };
 		D17AF396260BCF910050731E /* NewsScreen+View+UICollectionViewFlowDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NewsScreen+View+UICollectionViewFlowDelegate.swift"; sourceTree = "<group>"; };
 		D17AF39C260BE3510050731E /* UIStackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIStackView.swift; sourceTree = "<group>"; };
-		D17AF3A7260BEABB0050731E /* newsmock.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = newsmock.json; sourceTree = "<group>"; };
-		D17AF3AC260BF2090050731E /* NewsScreen+UIScrollViewDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NewsScreen+UIScrollViewDelegate.swift"; sourceTree = "<group>"; };
+		D17AF3A7260BEABB0050731E /* newsmock.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = newsmock.json; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.json; };
+		D17AF3AC260BF2090050731E /* NewsScreen+View+UIScrollViewDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NewsScreen+View+UIScrollViewDelegate.swift"; sourceTree = "<group>"; };
 		D17AF3B2260C5F1D0050731E /* UILabel+LineCount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UILabel+LineCount.swift"; sourceTree = "<group>"; };
 		D17AF3C4260CDB940050731E /* Collection+Safe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Collection+Safe.swift"; sourceTree = "<group>"; };
 		D17AF3CC260CE1120050731E /* ArticlesHorizontalList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticlesHorizontalList.swift; sourceTree = "<group>"; };
+		D17AF3D1260CE79C0050731E /* ArticleTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleTableViewCell.swift; sourceTree = "<group>"; };
+		D17AF3D9260CEC320050731E /* NewsScreen+View+UITableViewDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NewsScreen+View+UITableViewDelegate.swift"; sourceTree = "<group>"; };
+		D17AF3E1260D0F0D0050731E /* NewsScreen+View+UISearchBarDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NewsScreen+View+UISearchBarDelegate.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -264,8 +270,10 @@
 				D17AF232260B67A40050731E /* NewsScreenView.swift */,
 				D17AF237260B67BE0050731E /* NewsScreen+Presenter.swift */,
 				D17AF22D260B67950050731E /* NewsScreen+View.swift */,
+				D17AF3D9260CEC320050731E /* NewsScreen+View+UITableViewDelegate.swift */,
 				D17AF396260BCF910050731E /* NewsScreen+View+UICollectionViewFlowDelegate.swift */,
-				D17AF3AC260BF2090050731E /* NewsScreen+UIScrollViewDelegate.swift */,
+				D17AF3AC260BF2090050731E /* NewsScreen+View+UIScrollViewDelegate.swift */,
+				D17AF3E1260D0F0D0050731E /* NewsScreen+View+UISearchBarDelegate.swift */,
 			);
 			path = NewsScreen;
 			sourceTree = "<group>";
@@ -453,6 +461,7 @@
 			children = (
 				D17AF370260BBEA30050731E /* ArticleCollectionViewCell.swift */,
 				D17AF3CC260CE1120050731E /* ArticlesHorizontalList.swift */,
+				D17AF3D1260CE79C0050731E /* ArticleTableViewCell.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -654,10 +663,12 @@
 				D17AF25E260B6C690050731E /* ArticleDTO.swift in Sources */,
 				D17AF22E260B67950050731E /* NewsScreen+View.swift in Sources */,
 				D17AF3CD260CE1120050731E /* ArticlesHorizontalList.swift in Sources */,
+				D17AF3D2260CE79D0050731E /* ArticleTableViewCell.swift in Sources */,
 				D17AF24C260B6AC90050731E /* GetEverithing.swift in Sources */,
 				D17AF26A260B731C0050731E /* GetTopHeadlines.swift in Sources */,
 				D17AF281260B74430050731E /* APIRequestBuilder.swift in Sources */,
 				D17AF30A260B98DD0050731E /* RootView.swift in Sources */,
+				D17AF3E2260D0F0D0050731E /* NewsScreen+View+UISearchBarDelegate.swift in Sources */,
 				D17AF305260B98C10050731E /* Root+Presenter.swift in Sources */,
 				D17AF371260BBEA30050731E /* ArticleCollectionViewCell.swift in Sources */,
 				D17AF3C5260CDB950050731E /* Collection+Safe.swift in Sources */,
@@ -681,8 +692,9 @@
 				D17AF2BF260B89CC0050731E /* URLSessionTask+CancellableHashable.swift in Sources */,
 				D17AF381260BC6780050731E /* Cache.swift in Sources */,
 				D17AF392260BCD7D0050731E /* UIView+Shadow.swift in Sources */,
-				D17AF3AD260BF2090050731E /* NewsScreen+UIScrollViewDelegate.swift in Sources */,
+				D17AF3AD260BF2090050731E /* NewsScreen+View+UIScrollViewDelegate.swift in Sources */,
 				D17AF328260B9A5F0050731E /* NewsRequests.swift in Sources */,
+				D17AF3DA260CEC320050731E /* NewsScreen+View+UITableViewDelegate.swift in Sources */,
 				D17AF1F5260B60E80050731E /* ViewController.swift in Sources */,
 				D17AF336260B9AFA0050731E /* VoidParameters.swift in Sources */,
 				D17AF1F1260B60E80050731E /* AppDelegate.swift in Sources */,
