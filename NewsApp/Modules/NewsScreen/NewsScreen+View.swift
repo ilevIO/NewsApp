@@ -14,7 +14,9 @@ extension NewsScreen {
     }
     
     class View: UIViewController {
-        static let topBarHeight: CGFloat = 56
+        static let topBarHeight: CGFloat = 60
+        
+        var usesCollectionView = true
         var presenter: Presenter!
         
         var scrollState: ScrollState = .init()
@@ -23,7 +25,7 @@ extension NewsScreen {
         var isReloadingData = false
         var news: [ArticleCellModel] { presenter.news }
         //MARK: - Subviews
-        //var newsCollectionView: UICollectionView!
+        var newsCollectionView: UICollectionView!
         var newsTableView: UITableView = .init()
         var refreshControl = UIRefreshControl()
         
@@ -35,13 +37,13 @@ extension NewsScreen {
         
         //MARK: - Setup
         
-        /*private func initializeSubviews() {
+        private func initializeSubviews() {
             let size = NSCollectionLayoutSize(
                 widthDimension: NSCollectionLayoutDimension.fractionalWidth(1),
                 heightDimension: NSCollectionLayoutDimension.estimated(200)
             )
             let item = NSCollectionLayoutItem(layoutSize: size)
-            let group = NSCollectionLayoutGroup.horizontal(layoutSize: size, subitem: item, count: 2)
+            let group = NSCollectionLayoutGroup.horizontal(layoutSize: size, subitem: item, count: 1)
             group.interItemSpacing = .fixed(12)
             let section = NSCollectionLayoutSection(group: group)
             section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 10)
@@ -56,17 +58,20 @@ extension NewsScreen {
             newsCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
             //newsCollectionView.contentInset.left = 16
             //newsCollectionView.contentInset.right = 16
-        }*/
+        }
         
         @objc func refreshPulled(_ sender: UIRefreshControl) {
             presenter.refresh()
         }
         
         private func buildHierarchy() {
-            /*view.addSubview(newsCollectionView)
-            newsCollectionView.addSubview(refreshControl)*/
-            view.addSubview(newsTableView)
-            newsTableView.addSubview(refreshControl)
+            if usesCollectionView {
+                view.addSubview(newsCollectionView)
+                newsCollectionView.addSubview(refreshControl)
+            } else {
+                view.addSubview(newsTableView)
+                newsTableView.addSubview(refreshControl)
+            }
             view.addSubview(topBar)
             topBar.addSubview(searchBar)
         }
@@ -93,21 +98,23 @@ extension NewsScreen {
         
         private func configureSubviews() {
             topBar.backgroundColor = .systemBackground
-            /*newsCollectionView.dataSource = self
-            newsCollectionView.delegate = self
-            newsCollectionView.register(ArticleCollectionViewCell.self, forCellWithReuseIdentifier: "NewsCell")
-            newsCollectionView.backgroundColor = .clear
-            newsCollectionView.alwaysBounceVertical = true*/
-            newsTableView.register(ArticleTableViewCell.self, forCellReuseIdentifier: "NewsCell")
-            newsTableView.separatorStyle = .none
-            newsTableView.allowsSelection = true
-            newsTableView.delegate = self
-            newsTableView.dataSource = self
-            //newsTableView.rowHeight = UITableView.automaticDimension
-            newsTableView.estimatedRowHeight = 400//UITableView.automaticDimension
-            newsTableView.contentInset.top = 16
-            newsTableView.contentInset.bottom = 16
-            
+            if usesCollectionView {
+                newsCollectionView.dataSource = self
+                newsCollectionView.delegate = self
+                newsCollectionView.register(HorizontalArticleCollectionViewCell.self, forCellWithReuseIdentifier: "NewsCell")
+                newsCollectionView.backgroundColor = .clear
+                newsCollectionView.alwaysBounceVertical = true
+            } else {
+                newsTableView.register(ArticleTableViewCell.self, forCellReuseIdentifier: "NewsCell")
+                newsTableView.separatorStyle = .none
+                newsTableView.allowsSelection = true
+                newsTableView.delegate = self
+                newsTableView.dataSource = self
+                //newsTableView.rowHeight = UITableView.automaticDimension
+                newsTableView.estimatedRowHeight = 400//UITableView.automaticDimension
+                newsTableView.contentInset.top = 16
+                newsTableView.contentInset.bottom = 16
+            }
             refreshControl.addTarget(self, action: #selector(refreshPulled(_:)), for: .valueChanged)
             
             searchBar.widthAnchor.constraint(equalToConstant: 200).isActive = true
@@ -128,18 +135,21 @@ extension NewsScreen {
             searchBar.translatesAutoresizingMaskIntoConstraints = false
             searchBar.attach(to: topBar, left: horizontalMargin, bottom: verticalInset)
             
-            /*newsCollectionView.translatesAutoresizingMaskIntoConstraints = false
-            newsCollectionView.attach(to: view.safeAreaLayoutGuide, left: 0, right: 0)
-            newsCollectionView.attach(to: self.view, top: 0, bottom: 0)*/
-            
-            newsTableView.translatesAutoresizingMaskIntoConstraints = false
-            newsTableView.attach(to: view.safeAreaLayoutGuide, left: 0, right: 0)
-            newsTableView.attach(to: self.view, bottom: 0)
-            newsTableView.topAnchor.constraint(equalTo: topBar.bottomAnchor, constant: 0).isActive = true
+            if usesCollectionView {
+                newsCollectionView.translatesAutoresizingMaskIntoConstraints = false
+                newsCollectionView.attach(to: view.safeAreaLayoutGuide, left: 0, right: 0)
+                newsCollectionView.attach(to: self.view, bottom: 0)
+                newsCollectionView.topAnchor.constraint(equalTo: topBar.bottomAnchor, constant: 0).isActive = true
+            } else {
+                newsTableView.translatesAutoresizingMaskIntoConstraints = false
+                newsTableView.attach(to: view.safeAreaLayoutGuide, left: 0, right: 0)
+                newsTableView.attach(to: self.view, bottom: 0)
+                newsTableView.topAnchor.constraint(equalTo: topBar.bottomAnchor, constant: 0).isActive = true
+            }
         }
         
         private func setup() {
-            //initializeSubviews()
+            initializeSubviews()
             buildHierarchy()
             configureSubviews()
             setupLayout()
@@ -162,7 +172,11 @@ extension NewsScreen {
                 //self.newsTableView.layoutIfNeeded()
                 //self.newsCollectionView.collectionViewLayout.invalidateLayout()
             }, completion: { context in
-                self.newsTableView.visibleCells.forEach({ $0.layoutSubviews() })
+                if self.usesCollectionView {
+                    
+                } else {
+                    self.newsTableView.visibleCells.forEach({ $0.layoutSubviews() })
+                }
             })
         }
         
@@ -185,19 +199,33 @@ extension NewsScreen.View: NewsScreenView {
         //self.news = news
         refreshControl.endRefreshing()
         if !forced {
-            let currentNumber = newsTableView.numberOfRows(inSection: 0)//self.newsCollectionView.numberOfItems(inSection: 0)
-            let toInsert = news.count - currentNumber
-            guard toInsert > 0 else { return }
-            //UIView.animate(withDuration: 0.3) {
-            newsTableView.beginUpdates()
-            self.newsTableView.insertRows(at: (currentNumber..<currentNumber + toInsert).map({ IndexPath(item: $0, section: 0) }), with: .fade)//newsCollectionView.insertItems(at: (currentNumber..<currentNumber + toInsert).map({ IndexPath(item: $0, section: 0) }))
-            //}
-            newsTableView.endUpdates()
+            if usesCollectionView {
+                let currentNumber = self.newsCollectionView.numberOfItems(inSection: 0)
+                let toInsert = news.count - currentNumber
+                guard toInsert > 0 else { return }
+                //UIView.animate(withDuration: 0.3) {
+                //newsTableView.beginUpdates()
+                self.newsCollectionView.insertItems(at: (currentNumber..<currentNumber + toInsert).map({ IndexPath(item: $0, section: 0) }))
+                self.newsCollectionView.collectionViewLayout.invalidateLayout()
+                //}
+                //newsTableView.endUpdates()
+            } else {
+                let currentNumber = newsTableView.numberOfRows(inSection: 0)//self.newsCollectionView.numberOfItems(inSection: 0)
+                let toInsert = news.count - currentNumber
+                guard toInsert > 0 else { return }
+                //UIView.animate(withDuration: 0.3) {
+                newsTableView.beginUpdates()
+                self.newsTableView.insertRows(at: (currentNumber..<currentNumber + toInsert).map({ IndexPath(item: $0, section: 0) }), with: .fade)//newsCollectionView.insertItems(at: (currentNumber..<currentNumber + toInsert).map({ IndexPath(item: $0, section: 0) }))
+                //}
+                newsTableView.endUpdates()
+            }
         } else {
             //UIView.animate(withDuration: 0.3) {
+            if usesCollectionView {
+                self.newsCollectionView.reloadData()
+            } else {
                 self.newsTableView.reloadData()
-            //}
-            //self.newsCollectionView.reloadData()
+            }
         }
     }
 }
@@ -208,12 +236,20 @@ extension NewsScreen.View: UICollectionViewDelegate, UICollectionViewDataSource 
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "NewsCell", for: indexPath) as! ArticleCollectionViewCell
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "NewsCell", for: indexPath) as! HorizontalArticleCollectionViewCell
         cell.configure(with: news[indexPath.row])
+        cell.articleView.toggleExpanded = {
+            collectionView.collectionViewLayout.invalidateLayout()
+        }
         return cell
     }
     
-    
+    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        DispatchQueue.main.async {
+            collectionView.collectionViewLayout.invalidateLayout()
+            cell.isBeingPresented()
+        }
+    }
 }
 
 extension NewsScreen.View: UIScrollViewDelegate {

@@ -56,38 +56,15 @@ class ArticleCellView: UIView, SubscriberObject {
     
     override var bounds: CGRect {
         didSet {
-            if self.descriptionLabel.isTruncated {
-                if (articleModel?.title.contains("Apple wants Tim")) ?? false {
-                    print(descriptionLabel.frame)
-                }
-                addExpandButton()
-            } else if !isExpanded {
-                if (articleModel?.title.contains("Apple wants Tim")) ?? false {
-                    print(descriptionLabel.frame)
-                }
-                if (articleModel?.title.contains("Apple launches")) ?? false {
-                    print(descriptionLabel.frame)
-                }
-                hideExpandButton()
-            } else {
-                if (articleModel?.title.contains("Apple launches")) ?? false {
-                    print(descriptionLabel.frame)
-                }
-                print(self.descriptionLabel.frame)
-            }
-            labelsStackView.arrangedSubviews.forEach {
-                $0.sizeToFit()
-                $0.layoutIfNeeded()
-            }
-            /*self.sourceLabel.sizeToFit()
-            self.titleLabel.sizeToFit()
-            self.descriptionLabel.sizeToFit()
-            self.expandButton?.sizeToFit()
-            self.descriptionLabel.layoutSubviews()
-            self.descriptionLabel.layoutIfNeeded()*/
-            labelsStackView.layoutIfNeeded()
-            labelsStackView.layoutSubviews()
+            //checkAddButton()
         }
+    }
+    
+    @objc func expandButtonTapped(_ sender: UIButton) {
+        isExpanded.toggle()
+        descriptionLabel.layoutIfNeeded()
+        
+        toggleExpanded?()
     }
     
     func addExpandButton() {
@@ -97,10 +74,11 @@ class ArticleCellView: UIView, SubscriberObject {
             self.expandButton = expandButton
             expandButton.backgroundColor = .red
             //expandButton.isUserInteractionEnabled = true
+            expandButton.addTarget(self, action: #selector(expandButtonTapped(_:)), for: .touchUpInside)
             
-            let descriptionTapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(descriptionTapped(_:)))
+            /*let descriptionTapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(descriptionTapped(_:)))
             descriptionTapGestureRecognizer.cancelsTouchesInView = true
-            expandButton.addGestureRecognizer(descriptionTapGestureRecognizer)
+            expandButton.addGestureRecognizer(descriptionTapGestureRecognizer)*/
             //expandButton.font = .systemFont(ofSize: 14, weight: .semibold)
             //expandButton.textColor = .blue
             expandButton.setContentCompressionResistancePriority(.required, for: .vertical)
@@ -109,7 +87,7 @@ class ArticleCellView: UIView, SubscriberObject {
             if let index = labelsStackView.arrangedSubviews.firstIndex(of: descriptionLabel) {
                 labelsStackView.insertArrangedSubview(expandButton, at: index + 1)
             }
-            labelsStackView.layoutIfNeeded()
+           // labelsStackView.layoutIfNeeded()
         }
     }
     
@@ -122,6 +100,42 @@ class ArticleCellView: UIView, SubscriberObject {
             expandButton.removeFromSuperview()
             self.expandButton = nil
         }
+    }
+    
+    override func isBeingPresented() {
+        super.isBeingPresented()
+        
+        checkAddButton()
+    }
+    
+    func checkAddButton() {
+        if self.descriptionLabel.isTruncated {
+            if (articleModel?.title.contains("Apple wants Tim")) ?? false {
+                print(descriptionLabel.frame)
+            }
+            if (articleModel?.title.contains("Apple pulls more")) ?? false {
+                print(descriptionLabel.frame)
+            }
+            addExpandButton()
+        } else if !isExpanded {
+            if (articleModel?.title.contains("Apple wants Tim")) ?? false {
+                print(descriptionLabel.frame)
+            }
+            if (articleModel?.title.contains("Apple launches")) ?? false {
+                print(descriptionLabel.frame)
+            }
+            hideExpandButton()
+        } else {
+            if (articleModel?.title.contains("Apple launches")) ?? false {
+                print(descriptionLabel.frame)
+            }
+            print(self.descriptionLabel.frame)
+        }
+        /*labelsStackView.arrangedSubviews.forEach {
+            $0.sizeToFit()
+            $0.layoutIfNeeded()
+        }
+        labelsStackView.layoutIfNeeded()*/
     }
     
     override func layoutIfNeeded() {
@@ -146,30 +160,7 @@ class ArticleCellView: UIView, SubscriberObject {
         descriptionLabel.invalidateIntrinsicContentSize()
         descriptionLabel.frame.size.height = descriptionLabel.intrinsicContentSize.height*/
         //descriptionLabel.frame.size.height = descriptionLabel.intrinsicContentSize.height + 5
-        if self.descriptionLabel.isTruncated {
-            if (articleModel?.title.contains("Apple wants Tim")) ?? false {
-                print(descriptionLabel.frame)
-            }
-            addExpandButton()
-        } else if !isExpanded {
-            if (articleModel?.title.contains("Apple wants Tim")) ?? false {
-                print(descriptionLabel.frame)
-            }
-            if (articleModel?.title.contains("Apple launches")) ?? false {
-                print(descriptionLabel.frame)
-            }
-            hideExpandButton()
-        } else {
-            if (articleModel?.title.contains("Apple launches")) ?? false {
-                print(descriptionLabel.frame)
-            }
-            print(self.descriptionLabel.frame)
-        }
-        labelsStackView.arrangedSubviews.forEach {
-            $0.sizeToFit()
-            $0.layoutIfNeeded()
-        }
-        labelsStackView.layoutIfNeeded()
+        //checkAddButton()
     }
     
     override func updateConstraints() {

@@ -59,8 +59,8 @@ extension NewsScreen.View {
                             topBarTopConstraint.constant = Self.topBarHeight//0
                             UIView.animate(withDuration: 0.4) {
                                 self.topBar.clearShadow()
-                                self.view.layoutIfNeeded()
-                                self.view.setNeedsDisplay()
+                                //self.view.layoutIfNeeded()
+                                //self.view.setNeedsDisplay()
                             }
                         } else {
                             var delta = topBarTopConstraint.constant
@@ -84,7 +84,7 @@ extension NewsScreen.View {
         }
     }
     
-    /*func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         scrollState.prevScrollOffset = scrollView.contentOffset.y
         scrollState.currentDirectionBeginScrollOffset = scrollState.prevScrollOffset
         scrollState.scrollingDirection = 0
@@ -94,15 +94,15 @@ extension NewsScreen.View {
             
             topBar.clearShadow()
             UIView.animate(withDuration: 0.3) {
-                self.view.layoutIfNeeded()
-                self.view.setNeedsDisplay()
+                //self.view.layoutIfNeeded()
+                //self.view.setNeedsDisplay()
             }
         } else {
             topBarTopConstraint.constant = 0//-Self.topBarHeight
             UIView.animate(withDuration: 0.3) {
                 self.topBar.dropShadow(opacity: 0.2, radius: 20)
-                self.view.layoutIfNeeded()
-                self.view.setNeedsDisplay()
+                //self.view.layoutIfNeeded()
+                //self.view.setNeedsDisplay()
             }
         }
     }
@@ -116,5 +116,5 @@ extension NewsScreen.View {
     
     func scrollViewShouldScrollToTop(_ scrollView: UIScrollView) -> Bool {
         return true
-    }*/
+    }
 }
