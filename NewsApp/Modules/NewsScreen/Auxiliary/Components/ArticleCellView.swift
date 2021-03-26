@@ -37,7 +37,7 @@ class ArticleCellView: UIView, SubscriberObject {
     var timeLabel: UILabel = .init()
     var descriptionLabel: UILabel = .init(frame: .zero)
     
-    var labelsStackView = RefreshableStackView()
+    var labelsStackView = UIStackView()
     
     var toggleExpanded: (() -> Void)?
     var isExpanded: Bool = false {
@@ -72,7 +72,7 @@ class ArticleCellView: UIView, SubscriberObject {
             
             let expandButton = UIButton()
             self.expandButton = expandButton
-            expandButton.backgroundColor = .red
+            expandButton.setTitleColor(.systemBlue, for: .normal)
             //expandButton.isUserInteractionEnabled = true
             expandButton.addTarget(self, action: #selector(expandButtonTapped(_:)), for: .touchUpInside)
             
@@ -207,7 +207,7 @@ class ArticleCellView: UIView, SubscriberObject {
         var arrangedSubviews = [UIView]()
         if let sourceName = articleModel.source?.name {
             sourceLabel.text = sourceName
-            sourceLabel.textColor = .black
+            //sourceLabel.textColor = .black
             //verticalStackView.addArrangedSubview(sourceLabel)
             arrangedSubviews.append(sourceLabel)
         }
@@ -239,7 +239,9 @@ class ArticleCellView: UIView, SubscriberObject {
             previewImageView.backgroundColor = .lightGray
             //Keep downloading image after deinit for caching
             _ = Current.image.getImage(urlToImage) { [weak self] image in
-                guard let self = self else { return }
+                guard let self = self,
+                      let imageData = image?.jpegData(compressionQuality: 0.0) else { return }
+                let image = UIImage.init(data: imageData)
                 DispatchQueue.main.async {
                     if urlToImage == self.articleModel?.urlToImage {
                         //UIView.transition(with: self.previewImageView, duration: 0.2, options: .transitionCrossDissolve) {
@@ -312,6 +314,8 @@ class ArticleCellView: UIView, SubscriberObject {
         descriptionLabel.numberOfLines = 3
         descriptionLabel.applyStyle(.articleDescription)
         titleLabel.applyStyle(.articleTitle)
+        
+        previewImageView.layer.cornerRadius = 8
     }
     
     private func setupLayout() {

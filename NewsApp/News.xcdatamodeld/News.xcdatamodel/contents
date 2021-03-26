@@ -8,10 +8,11 @@
     </entity>
     <entity name="LocalImage" representedClassName="LocalImage" syncable="YES" codeGenerationType="class">
         <attribute name="imageData" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
+        <attribute name="lastAccess" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="url" optional="YES" attributeType="String"/>
     </entity>
     <elements>
         <element name="LocalArticle" positionX="-63" positionY="-18" width="128" height="103"/>
-        <element name="LocalImage" positionX="-54" positionY="18" width="128" height="73"/>
+        <element name="LocalImage" positionX="-54" positionY="18" width="128" height="88"/>
     </elements>
 </model>

@@ -34,14 +34,15 @@ class HorizontalArticleCollectionViewCell: UICollectionViewCell {
     }
     
     private func configureSubviews() {
-        contentView.backgroundColor = .gray
-        articleView.backgroundColor = .white
+        contentView.backgroundColor = .systemBackground
+        articleView.backgroundColor = .systemBackground
         articleView.setContentCompressionResistancePriority(.required, for: .vertical)
+        contentView.layer.cornerRadius = 12
     }
     
     private func setupLayout() {
         let verticalMargin: CGFloat = 8
-        let horizontalMargin: CGFloat = 16
+        let horizontalMargin: CGFloat = 8
         contentView.fillLayout(with: articleView, insets: .init(top: verticalMargin, left: horizontalMargin, bottom: verticalMargin, right: horizontalMargin)).forEach({ $0.priority = .required })
     }
     

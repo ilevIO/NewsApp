@@ -18,7 +18,7 @@ extension NewsScreen.View {
 
 extension NewsScreen.View {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        if !scrollState.lockScroll && _viewDidAppear {
+        if !scrollState.lockScroll && _viewDidAppear && false {
             let contentOffset = scrollView.contentOffset.y
     
             let deltaToShowBar: CGFloat = 0
@@ -74,7 +74,7 @@ extension NewsScreen.View {
                     }
                 }
                 searchBar.alpha = topBarTopConstraint.constant / Self.topBarHeight
-                topBar.dropShadow(opacity: 0.2 * Float(1 - abs(-topBarTopConstraint.constant) / Self.topBarHeight), radius: 20)
+                topBar.dropShadow(opacity: 0.2 * Float(1 - topBarTopConstraint.constant / Self.topBarHeight), radius: 20)
                 scrollState.prevScrollOffset = scrollView.contentOffset.y
             }
         }
@@ -84,11 +84,11 @@ extension NewsScreen.View {
         }
     }
     
-    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+    /*func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        scrollState.scrollingDirection = 0
         scrollState.prevScrollOffset = scrollView.contentOffset.y
         scrollState.currentDirectionBeginScrollOffset = scrollState.prevScrollOffset
-        scrollState.scrollingDirection = 0
-        
+        scrollState.lockScroll = true
         if topBarTopConstraint.constant > Self.topBarHeight/2 {
             topBarTopConstraint.constant = Self.topBarHeight//0
             
@@ -107,12 +107,18 @@ extension NewsScreen.View {
         }
     }
     
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        scrollState.lockScroll = false
+        scrollState.prevScrollOffset = scrollView.contentOffset.y
+    }
+    
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         //Decide to continue showing or hiding bar
+        scrollState.scrollingDirection = 0
         scrollState.prevScrollOffset = scrollView.contentOffset.y
         scrollState.currentDirectionBeginScrollOffset = scrollState.prevScrollOffset
-        scrollState.scrollingDirection = 0
-    }
+        scrollState.lockScroll = false
+    }*/
     
     func scrollViewShouldScrollToTop(_ scrollView: UIScrollView) -> Bool {
         return true

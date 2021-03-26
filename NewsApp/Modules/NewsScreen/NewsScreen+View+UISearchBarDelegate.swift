@@ -11,4 +11,10 @@ extension NewsScreen.View: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         presenter.searchQueryChanged(to: searchText)
     }
+    
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        view.endEditing(true)
+        
+        isSearchExpanded = false
+    }
 }

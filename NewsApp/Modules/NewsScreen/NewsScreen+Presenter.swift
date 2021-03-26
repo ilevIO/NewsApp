@@ -92,8 +92,9 @@ extension NewsScreen {
         }
         
         func loadNext() {
+            let currentPeriod = self.currentPeriod
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
-                guard let self = self else { return }
+                guard let self = self, currentPeriod == self.currentPeriod else { return }
                 self.newsLoader.loadNext(query: self.query.isEmpty ? nil : self.query, currentLoaded: self.news.count, for: self.currentPeriod) { [weak self] news in
                     guard let self = self, let news = news else { return }
                     let newArticles = news.articles.filter { fetchedArticle in
@@ -104,12 +105,13 @@ extension NewsScreen {
                     if !news.articles.isEmpty {
                         self.currentPeriod = Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.lowerBound)!...Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.upperBound)!
                         self.news.append(contentsOf: newArticles.compactMap {  ArticleCellModel(model: ArticleModel(with: $0), isExpanded: false) })
-                    }
-                    DispatchQueue.main.async {
-                        UIView.animate(withDuration: 0.3) {
-                            self.view?.update(with: self.news, forced: false)
+                        DispatchQueue.main.async {
+                            UIView.animate(withDuration: 0.3) {
+                                self.view?.update(with: self.news, forced: false)
+                            }
                         }
                     }
+                    
                 }
             }
         }

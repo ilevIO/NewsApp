@@ -122,7 +122,9 @@ class ArticleCollectionViewCell: UICollectionViewCell {
             imageView.backgroundColor = .lightGray
             //Keep downloading image after deinit for caching
             _ = Current.image.getImage(urlToImage) { [weak self] image in
-                guard let self = self else { return }
+                guard let self = self,
+                      let imageData = image?.jpegData(compressionQuality: 0.1) else { return }
+                let image = UIImage.init(data: imageData)
                 DispatchQueue.main.async {
                     if urlToImage == self.articleModel?.urlToImage {
                         UIView.transition(with: self.imageView, duration: 0.2, options: .transitionCrossDissolve) {

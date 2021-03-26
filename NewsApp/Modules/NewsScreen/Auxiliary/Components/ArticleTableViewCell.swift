@@ -46,14 +46,14 @@ class LabelWrapper: UIView {
 
 struct LabelStyle {
     var font: UIFont
-    var textColor: UIColor = .black
+    var textColor: UIColor = .label
 }
 
 extension LabelStyle {
-    static let articleTitle: LabelStyle = .init(font: .systemFont(ofSize: 18, weight: .bold))
+    static let articleTitle: LabelStyle = .init(font: .systemFont(ofSize: 18, weight: .black))
     static let articleDescription: LabelStyle = .init(
         font: .systemFont(ofSize: 12),
-        textColor: .darkGray
+        textColor: .gray
     )
 }
 
