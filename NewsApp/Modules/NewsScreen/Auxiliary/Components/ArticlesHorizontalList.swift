@@ -13,55 +13,6 @@ struct CategoryArticles {
     var articles: [ArticleModel]
 }
 
-class ArticleCellView: UIView {
-    var article: ArticleModel?
-    //MARK: - Subviews
-    var imageView: UIImageView = .init()
-    var titleLabel: UILabel = .init()
-    var sourceLabel: UILabel = .init()
-    var dateLabel: UILabel = .init()
-    var descriptionLabel: UILabel = .init()
-    var backgroundView: UIView = .init()
-    
-    func configure(with article: ArticleModel) {
-        //titleLabel = article.title
-        if let description = article.description {
-            description
-        }
-    }
-    
-    private func buildHierarchy() {
-        addSubview(imageView)
-        addSubview(backgroundView)
-        addSubview(titleLabel)
-        addSubview(sourceLabel)
-    }
-    
-    private func configureSubviews() {
-        
-    }
-    
-    private func setupLayout() {
-        
-    }
-    
-    private func setup() {
-        buildHierarchy()
-        configureSubviews()
-        setupLayout()
-    }
-    
-    override init(frame: CGRect = .zero) {
-        super.init(frame: frame)
-        
-        setup()
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-}
-
 class SimpleArticleCollectionViewCell: UICollectionViewCell {
     
 }

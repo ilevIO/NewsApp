@@ -13,8 +13,22 @@ import Combine
 class NewsLoader: SubscriberObject {
     var subscriptionId: Int = UUID().hashValue
     
+    func checkLocalStorage() {
+        //Exctract everything from core data
+    }
+    
+    func storeLocally(articles: [ArticleDTO]) {
+         //core data save object
+    }
+    
     func loadNext(query: String? = nil, currentLoaded: Int, for timePeriod: ClosedRange<Date>, completion: ((FetchedEverything?) -> Void)?) {
+        if currentLoaded == 0 {
+            checkLocalStorage()
+        }
         Current.api.news.getEverything(.init(q: query, from: timePeriod.lowerBound, to: timePeriod.upperBound)) { news in
+            if let news = news {
+                
+            }
             completion?(news)
         }.flatMap({ Current.api.subscriptions.registerTask($0, for: self) })
     }
@@ -78,20 +92,23 @@ extension NewsScreen {
         }
         
         func loadNext() {
-            newsLoader.loadNext(query: query.isEmpty ? nil : query, currentLoaded: news.count, for: currentPeriod) { [weak self] news in
-                guard let self = self, let news = news else { return }
-                let newArticles = news.articles.filter { fetchedArticle in
-                    !self.news.contains {
-                        fetchedArticle.url == $0.model.url
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+                guard let self = self else { return }
+                self.newsLoader.loadNext(query: self.query.isEmpty ? nil : self.query, currentLoaded: self.news.count, for: self.currentPeriod) { [weak self] news in
+                    guard let self = self, let news = news else { return }
+                    let newArticles = news.articles.filter { fetchedArticle in
+                        !self.news.contains {
+                            fetchedArticle.url == $0.model.url
+                        }
                     }
-                }
-                if !news.articles.isEmpty {
-                    self.currentPeriod = Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.lowerBound)!...Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.upperBound)!
-                    self.news.append(contentsOf: newArticles.compactMap {  ArticleCellModel(model: ArticleModel(with: $0), isExpanded: false) })
-                }
-                DispatchQueue.main.async {
-                    UIView.animate(withDuration: 0.3) {
-                        self.view?.update(with: self.news, forced: false)
+                    if !news.articles.isEmpty {
+                        self.currentPeriod = Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.lowerBound)!...Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.upperBound)!
+                        self.news.append(contentsOf: newArticles.compactMap {  ArticleCellModel(model: ArticleModel(with: $0), isExpanded: false) })
+                    }
+                    DispatchQueue.main.async {
+                        UIView.animate(withDuration: 0.3) {
+                            self.view?.update(with: self.news, forced: false)
+                        }
                     }
                 }
             }

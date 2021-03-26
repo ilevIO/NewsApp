@@ -14,8 +14,22 @@ class ImageManager {
     var lock = NSLock()
     var requests: [URL: [((UIImage?) -> Void)?]] = [:]
     
+    func getLocalStoredImageData(forKey key: String) -> Data? {
+        if let data = Current.localStorage.load(entityName: "LocalImage")?
+            .first(where: { ($0.value(forKey: "url") as? String) == key })?
+            .value(forKey: "imageData") as? Data {
+            self.insertImage(data, forKey: key)
+            return data
+        }
+        return nil
+    }
+    
+    func saveImageLocally(image: UIImage, urlKey: String) {
+        //Current.localStorage.load(entityName: <#T##String#>)
+    }
+    
     func getCachedImage(forKey key: String) -> UIImage? {
-        guard let data = cache.value(forKey: key) else { return nil }
+        guard let data = cache.value(forKey: key) ?? getLocalStoredImageData(forKey: key) else { return nil }
         return UIImage(data: data)
     }
     
@@ -45,6 +59,7 @@ class ImageManager {
                     return
                 }
                 self?.insertImage(data, forKey: urlKey)
+                self?.saveImageLocally(image: image, urlKey: urlKey)
                 self?.lock.execute {
                     self?.requests[url]?.forEach({ $0?(image) })
                     self?.requests.removeValue(forKey: url)

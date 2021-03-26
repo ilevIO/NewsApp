@@ -7,7 +7,7 @@
 
 import UIKit
 
-/*extension NewsScreen.View: UICollectionViewDelegateFlowLayout {
+extension NewsScreen.View: UICollectionViewDelegateFlowLayout {
     /*func collectionView(
         _ collectionView: UICollectionView,
         layout collectionViewLayout: UICollectionViewLayout,
@@ -35,7 +35,7 @@ import UIKit
         return .init(width: (self.view.frame.width - (horizontalMargin) * 2 + 16) / 2, height: 252)
     }*/
     
-    func size(collectionView: UICollectionView, indexPath: IndexPath) -> CGSize {
+    /*func size(collectionView: UICollectionView, indexPath: IndexPath) -> CGSize {
         /*let productCell = ProductCellView()
         productCell.dynamicHeight = true
         var product: Product?
@@ -55,6 +55,5 @@ import UIKit
         productCell.setNeedsLayout()
         productCell.layoutIfNeeded()*/
         return .init(width: 120, height: 300)//productCell.frame.size
-    }
+    }*/
 }
-*/

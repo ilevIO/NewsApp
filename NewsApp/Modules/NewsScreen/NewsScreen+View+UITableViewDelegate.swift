@@ -19,7 +19,9 @@ extension NewsScreen.View: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "NewsCell") as! ArticleTableViewCell
         cell.selectionStyle = .none
-        cell.configure(with: news[indexPath.row])
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            cell.configure(with: self.news[indexPath.row])
+        }
         cell.toggleExpanded = { [weak self] in
             self?.presenter.news[indexPath.row].isExpanded.toggle()
             tableView.beginUpdates()
@@ -28,5 +30,18 @@ extension NewsScreen.View: UITableViewDelegate, UITableViewDataSource {
         return cell
     }
     
-    
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        if indexPath.row == 3 {
+            print("xxx")
+        }
+        //contentView.subviews.first?.layoutSubviews()
+        /*(cell.contentView.subviews.first as? ArticleCellView)?.labelsStackView.arrangedSubviews.forEach { $0.layoutSubviews() }
+        cell.contentView.subviews.first?.setNeedsLayout()
+        cell.contentView.subviews.first?.layoutIfNeeded()
+        cell.contentView.layoutIfNeeded()
+        cell.contentView.layoutSubviews()
+        cell.layoutIfNeeded()
+        cell.layoutSubviews()*/
+        //tableView.reloadRows(at: [indexPath], with: .none)
+    }
 }

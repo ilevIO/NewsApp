@@ -28,6 +28,7 @@ let _apiManager = APIManager(
 struct AppEnvironment {
     var api: APIProvider
     var image: ImageProvider
+    var localStorage: LocalStorageManager
     var root: Root.Presenter?
 }
 
@@ -35,7 +36,8 @@ extension AppEnvironment {
     static var `default`: Self {
         AppEnvironment(
             api: .mock,
-            image: .default
+            image: .default,
+            localStorage: .init()
         )
     }
 }

@@ -18,7 +18,7 @@ extension NewsScreen.View {
 
 extension NewsScreen.View {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        if !scrollState.lockScroll {
+        if !scrollState.lockScroll && _viewDidAppear {
             let contentOffset = scrollView.contentOffset.y
     
             let deltaToShowBar: CGFloat = 0
@@ -84,7 +84,7 @@ extension NewsScreen.View {
         }
     }
     
-    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+    /*func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         scrollState.prevScrollOffset = scrollView.contentOffset.y
         scrollState.currentDirectionBeginScrollOffset = scrollState.prevScrollOffset
         scrollState.scrollingDirection = 0
@@ -116,5 +116,5 @@ extension NewsScreen.View {
     
     func scrollViewShouldScrollToTop(_ scrollView: UIScrollView) -> Bool {
         return true
-    }
+    }*/
 }

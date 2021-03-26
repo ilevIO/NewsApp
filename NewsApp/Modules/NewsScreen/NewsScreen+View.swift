@@ -79,6 +79,17 @@ extension NewsScreen {
             //newsCollectionView.contentInset.left = 16
             //newsCollectionView.contentInset.right = 16
         }
+        var _viewDidAppear = false
+        
+        override func viewWillAppear(_ animated: Bool) {
+            super.viewWillAppear(animated)
+            _viewDidAppear = false
+        }
+        
+        override func viewDidAppear(_ animated: Bool) {
+            super.viewDidAppear(animated)
+            _viewDidAppear = true
+        }
         
         private func configureSubviews() {
             topBar.backgroundColor = .systemBackground
@@ -92,6 +103,10 @@ extension NewsScreen {
             newsTableView.allowsSelection = true
             newsTableView.delegate = self
             newsTableView.dataSource = self
+            //newsTableView.rowHeight = UITableView.automaticDimension
+            newsTableView.estimatedRowHeight = 400//UITableView.automaticDimension
+            newsTableView.contentInset.top = 16
+            newsTableView.contentInset.bottom = 16
             
             refreshControl.addTarget(self, action: #selector(refreshPulled(_:)), for: .valueChanged)
             
@@ -173,13 +188,15 @@ extension NewsScreen.View: NewsScreenView {
             let currentNumber = newsTableView.numberOfRows(inSection: 0)//self.newsCollectionView.numberOfItems(inSection: 0)
             let toInsert = news.count - currentNumber
             guard toInsert > 0 else { return }
-            UIView.animate(withDuration: 0.3) {
-                self.newsTableView.insertRows(at: (currentNumber..<currentNumber + toInsert).map({ IndexPath(item: $0, section: 0) }), with: .automatic)//newsCollectionView.insertItems(at: (currentNumber..<currentNumber + toInsert).map({ IndexPath(item: $0, section: 0) }))
-            }
+            //UIView.animate(withDuration: 0.3) {
+            newsTableView.beginUpdates()
+            self.newsTableView.insertRows(at: (currentNumber..<currentNumber + toInsert).map({ IndexPath(item: $0, section: 0) }), with: .fade)//newsCollectionView.insertItems(at: (currentNumber..<currentNumber + toInsert).map({ IndexPath(item: $0, section: 0) }))
+            //}
+            newsTableView.endUpdates()
         } else {
-            UIView.animate(withDuration: 0.3) {
+            //UIView.animate(withDuration: 0.3) {
                 self.newsTableView.reloadData()
-            }
+            //}
             //self.newsCollectionView.reloadData()
         }
     }
