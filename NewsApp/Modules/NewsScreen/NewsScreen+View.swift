@@ -55,7 +55,7 @@ extension NewsScreen {
             let group = NSCollectionLayoutGroup.vertical(layoutSize: size, subitem: item, count: 1)
             group.interItemSpacing = .fixed(12)
             let section = NSCollectionLayoutSection(group: group)
-            section.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 0, bottom: 8, trailing: 0)
+            section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
             section.interGroupSpacing = 0
             section.orthogonalScrollingBehavior = .paging
             let layout = UICollectionViewCompositionalLayout(section: section)
@@ -97,13 +97,13 @@ extension NewsScreen {
         }
         
         @objc func refreshPulled(_ sender: UIRefreshControl) {
-            presenter.refresh(for: "Apple")
+            presenter.refresh(for: hashTable[sender.tag]!)
         }
         
         private func buildHierarchy() {
             if usesCollectionView {
                 view.addSubview(mainCollectionView)
-                mainCollectionView.addSubview(refreshControl)
+                //mainCollectionView.addSubview(refreshControl)
                 //view.addSubview(newsCollectionView)
                 //newsCollectionView.addSubview(refreshControl)
             } else {
@@ -336,7 +336,13 @@ extension NewsScreen.View: NewsScreenView {
             //UIView.animate(withDuration: 0.3) {
             if usesCollectionView {
                 guard let newsCollectionView = self.sectionsCollectionViews[section]?.value else { return }
-                newsCollectionView.reloadData()
+                
+                DispatchQueue.main.async {
+                    newsCollectionView.refreshControl?.endRefreshing()
+                }
+               // DispatchQueue.main.async {
+                    newsCollectionView.reloadData()
+               // }
             } else {
                 self.newsTableView.reloadData()
             }
