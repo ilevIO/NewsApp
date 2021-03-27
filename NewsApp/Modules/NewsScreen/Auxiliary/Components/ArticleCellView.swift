@@ -56,7 +56,7 @@ class ArticleCellView: UIView, SubscriberObject {
     
     override var bounds: CGRect {
         didSet {
-            //checkAddButton()
+            //isBeingPresented()
         }
     }
     

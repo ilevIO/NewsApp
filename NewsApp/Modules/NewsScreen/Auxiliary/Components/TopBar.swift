@@ -98,9 +98,9 @@ class CategoriesStackView: UIStackView {
     }
     
     func select(categoryView: CategoryView) {
-        categoryViews.forEach {
-            $0.deselect()
-        }
+        categoryViews
+            .filter { $0 !== categoryView }
+            .forEach { $0.deselect() }
         categoryView.select()
     }
     

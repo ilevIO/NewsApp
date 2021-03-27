@@ -41,11 +41,10 @@ extension NewsScreen {
         //MARK: - Constraints
         var topBarTopConstraint: NSLayoutConstraint!
         
-        let searchButton = UIButton()
         //MARK: - Setup
         var hashTable: [Int: String] = [:]
         var mainCollectionView: UICollectionView!
-        
+        var sections: [String] { presenter.sections }
         private func setupMainCollectionView() {
             let size = NSCollectionLayoutSize(
                 widthDimension: NSCollectionLayoutDimension.fractionalWidth(1),
@@ -60,59 +59,21 @@ extension NewsScreen {
             section.orthogonalScrollingBehavior = .paging
             
             section.visibleItemsInvalidationHandler = { [weak self] (visibleItems, offset, env) in
-                /*if mainCollectionView.frame.width > 0 {
-                    let index = Int(mainCollectionView.contentOffset.x) / Int(mainCollectionView.frame.width)
-                    let section = self.sections[index]
-                    topBar.categoriesStackView.selectCategory(section)
-                }*/
                 guard let self = self else { return }
                 let index = Int(round(offset.x /  self.mainCollectionView.frame.width))
                 let section = self.sections[index]
                 UIView.animate(withDuration: 0.2) {
                     self.topBar.categoriesStackView.selectCategory(section)
                 }
-                /*let normalizedOffsetX = offset.x + centeredPadding
-                let centerPoint = CGPoint(x: normalizedOffsetX + collectionView.bounds.width / 2, y: 20)
-                visibleItems.forEach({ item in
-                     UIView.animate(withDuration: 0.3) {
-                         item.transform = item.frame.contains(centerPoint) ? .identity : CGAffineTransform(scaleX: 0.9, y: 0.9)
-                     }
-                })*/
             }
             
             let layout = UICollectionViewCompositionalLayout(section: section)
             
-            /*let layout = UICollectionViewFlowLayout()
-            layout.scrollDirection = .vertical*/
-            //layout.estimatedItemSize = .init(width: 180, height: 600)
-            //layout.sectionInset = .init(top: 0, left: 16, bottom: 0, right: 16)
-            //layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
             mainCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         }
         
         private func initializeSubviews() {
             setupMainCollectionView()
-            return
-            let size = NSCollectionLayoutSize(
-                widthDimension: NSCollectionLayoutDimension.fractionalWidth(1),
-                heightDimension: NSCollectionLayoutDimension.estimated(200)
-            )
-            let item = NSCollectionLayoutItem(layoutSize: size)
-            let group = NSCollectionLayoutGroup.horizontal(layoutSize: size, subitem: item, count: 1)
-            group.interItemSpacing = .fixed(12)
-            let section = NSCollectionLayoutSection(group: group)
-            section.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 16, bottom: 8, trailing: 16)
-            section.interGroupSpacing = 18
-            
-            let layout = UICollectionViewCompositionalLayout(section: section)
-            /*let layout = UICollectionViewFlowLayout()
-            layout.scrollDirection = .vertical*/
-            //layout.estimatedItemSize = .init(width: 180, height: 600)
-            //layout.sectionInset = .init(top: 0, left: 16, bottom: 0, right: 16)
-            //layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
-            newsCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-            //newsCollectionView.contentInset.left = 16
-            //newsCollectionView.contentInset.right = 16
         }
         
         @objc func emptyAreaTapped(_ recognizer: UITapGestureRecognizer) {
@@ -165,35 +126,15 @@ extension NewsScreen {
             
             topBar.categoriesStackView.configure(with: sections)
             topBar.categoriesStackView.onCategoryChanged = { [weak self] category in
-                //presenter.categoryTapped(category:)
                 guard let categoryIndex = self?.sections.firstIndex(of: category) else { return }
                 self?.mainCollectionView.scrollToItem(at: .init(item: categoryIndex, section: 0), at: .left, animated: true)
             }
             
-            if usesCollectionView {
-                /*newsCollectionView.dataSource = self
-                newsCollectionView.delegate = self
-                newsCollectionView.register(HorizontalArticleCollectionViewCell.self, forCellWithReuseIdentifier: "NewsCell")
-                newsCollectionView.backgroundColor = .clear
-                newsCollectionView.alwaysBounceVertical = true*/
-                
-                mainCollectionView.dataSource = self
-                mainCollectionView.delegate = self
-                mainCollectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "NewsCell")
-                mainCollectionView.backgroundColor = .clear
-                mainCollectionView.alwaysBounceHorizontal = true
-            } else {
-                newsTableView.register(ArticleTableViewCell.self, forCellReuseIdentifier: "NewsCell")
-                newsTableView.separatorStyle = .none
-                newsTableView.allowsSelection = true
-                newsTableView.delegate = self
-                newsTableView.dataSource = self
-                //newsTableView.rowHeight = UITableView.automaticDimension
-                newsTableView.estimatedRowHeight = 400//UITableView.automaticDimension
-                newsTableView.contentInset.top = 16
-                newsTableView.contentInset.bottom = 16
-            }
-            refreshControl.addTarget(self, action: #selector(refreshPulled(_:)), for: .valueChanged)
+            mainCollectionView.dataSource = self
+            mainCollectionView.delegate = self
+            mainCollectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "NewsCell")
+            mainCollectionView.backgroundColor = .clear
+            mainCollectionView.alwaysBounceHorizontal = true
             
             searchBar.widthAnchor.constraint(equalToConstant: 200).isActive = true
             searchBar.barStyle = .default
@@ -201,7 +142,7 @@ extension NewsScreen {
             searchBar.delegate = self
             searchBar.showsCancelButton = true
             
-            searchButton.setImage(UIImage(systemName: "search"), for: .normal)
+            //searchButton.setImage(UIImage(systemName: "search"), for: .normal)
             
         }
         var isSearchExpanded = false {
@@ -244,24 +185,11 @@ extension NewsScreen {
             topBarTopConstraint = topBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: Self.topBarHeight)
             topBarTopConstraint.isActive = true
             topBar.topAnchor.constraint(lessThanOrEqualTo: view.topAnchor).isActive = true
-            searchBar.translatesAutoresizingMaskIntoConstraints = false
-            //searchBar.attach(to: topBar, left: horizontalMargin, bottom: verticalInset)
             
-            if usesCollectionView {
-                mainCollectionView.translatesAutoresizingMaskIntoConstraints = false
-                mainCollectionView.attach(to: view.safeAreaLayoutGuide, left: 0, right: 0)
-                mainCollectionView.attach(to: self.view, bottom: 0)
-                mainCollectionView.topAnchor.constraint(equalTo: topBar.bottomAnchor, constant: 0).isActive = true
-                /*newsCollectionView.translatesAutoresizingMaskIntoConstraints = false
-                newsCollectionView.attach(to: view.safeAreaLayoutGuide, left: 0, right: 0)
-                newsCollectionView.attach(to: self.view, bottom: 0)
-                newsCollectionView.topAnchor.constraint(equalTo: topBar.bottomAnchor, constant: 0).isActive = true*/
-            } else {
-                newsTableView.translatesAutoresizingMaskIntoConstraints = false
-                newsTableView.attach(to: view.safeAreaLayoutGuide, left: 0, right: 0)
-                newsTableView.attach(to: self.view, bottom: 0)
-                newsTableView.topAnchor.constraint(equalTo: topBar.bottomAnchor, constant: 0).isActive = true
-            }
+            mainCollectionView.translatesAutoresizingMaskIntoConstraints = false
+            mainCollectionView.attach(to: view.safeAreaLayoutGuide, left: 0, right: 0)
+            mainCollectionView.attach(to: self.view, bottom: 0)
+            mainCollectionView.topAnchor.constraint(equalTo: topBar.bottomAnchor, constant: 0).isActive = true
         }
         
         private func setup() {
@@ -277,8 +205,6 @@ extension NewsScreen {
             
             setup()
         }
-        
-        var sections = ["Apple", "IT", "Belarus", "Cocoa", "iOS"]
         
         struct Weak<T: AnyObject> {
             weak var value: T?
@@ -334,7 +260,7 @@ extension NewsScreen {
 extension NewsScreen.View: NewsScreenView {
     func update(with news: [ArticleCellModel], for section: String, forced: Bool) {
         //self.news = news
-        self.newsSections = presenter.news
+        self.newsSections[section] = .init(name: section, articles: news) //= presenter.news
         refreshControl.endRefreshing()
         if !forced {
             if usesCollectionView {
@@ -354,9 +280,22 @@ extension NewsScreen.View: NewsScreenView {
                 //newsTableView.beginUpdates()
                 
                 DispatchQueue.main.async {
-                    newsCollectionView.insertItems(at: (currentNumber..<currentNumber + toInsert).map({ IndexPath(item: $0, section: 0) }))
-                    newsCollectionView.collectionViewLayout.invalidateLayout()
-                    newsCollectionView.layoutIfNeeded()
+                    //newsCollectionView.insertItems(at: (currentNumber..<currentNumber + toInsert).map({ IndexPath(item: $0, section: 0) }))
+                    UIView.transition(with: newsCollectionView, duration: 0.2, options: .transitionCrossDissolve) {
+                        newsCollectionView.reloadData()
+                        newsCollectionView.collectionViewLayout.invalidateLayout()
+                        newsCollectionView.layoutIfNeeded()
+                    }
+                        
+                    //newsCollectionView.setNeedsLayout()
+                    //DispatchQueue.main.async {
+                        /*UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseInOut) {
+                            newsCollectionView.collectionViewLayout.invalidateLayout()
+                            newsCollectionView.layoutIfNeeded()
+                        }*/
+                    //}
+                    /*newsCollectionView.collectionViewLayout.invalidateLayout()
+                    newsCollectionView.layoutIfNeeded()*/
                 }
                 //}
                 //newsTableView.endUpdates()
@@ -378,6 +317,7 @@ extension NewsScreen.View: NewsScreenView {
                 DispatchQueue.main.async {
                     newsCollectionView.refreshControl?.endRefreshing()
                 }
+                
                // DispatchQueue.main.async {
                     newsCollectionView.reloadData()
                // }

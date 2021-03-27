@@ -8,49 +8,12 @@
 import Foundation
 import UIKit
 
-extension NewsScreen.View: UICollectionViewDelegate, UICollectionViewDataSource {
-    func inferNewsCollectionViewLayout(with size: CGSize) -> UICollectionViewLayout {
-        let numberOfItemsInRow = size.height > size.width ? 1 : 2
-        let size = NSCollectionLayoutSize(
-            widthDimension: NSCollectionLayoutDimension.fractionalWidth(1),
-            heightDimension: NSCollectionLayoutDimension.estimated(200)
-        )
-        let item = NSCollectionLayoutItem(layoutSize: size)
-        let group = NSCollectionLayoutGroup.horizontal(layoutSize: size, subitem: item, count: numberOfItemsInRow)
-        group.interItemSpacing = .fixed(12)
-        let section = NSCollectionLayoutSection(group: group)
-        section.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 16, bottom: view.safeAreaInsets.bottom + 8, trailing: 16)
-        section.interGroupSpacing = 18
-        let layout = UICollectionViewCompositionalLayout(section: section)
-        return layout
+extension NewsScreen.View: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDataSourcePrefetching {
+    func collectionView(_ collectionView: UICollectionView, prefetchItemsAt indexPaths: [IndexPath]) {
+        presenter.scrollDidReachBounds(in: hashTable[collectionView.tag]!)
+        //presenter.loadNext(category: hashTable[collectionView.tag]!)
     }
     
-    func createCollectionView(for newsSection: String) -> UICollectionView {
-        let layout = inferNewsCollectionViewLayout(with: view.bounds.size)
-        /*let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .vertical*/
-        //layout.estimatedItemSize = .init(width: 180, height: 600)
-        //layout.sectionInset = .init(top: 0, left: 16, bottom: 0, right: 16)
-        //layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
-        let collectionView = self.sectionsCollectionViews[newsSection]?.value ?? UICollectionView(frame: .zero, collectionViewLayout: layout)
-        collectionView.dataSource = self
-        collectionView.delegate = self
-        collectionView.register(HorizontalArticleCollectionViewCell.self, forCellWithReuseIdentifier: "NewsCell")
-        collectionView.backgroundColor = .clear
-        collectionView.alwaysBounceVertical = true
-        self.sectionsCollectionViews[newsSection] = Weak(value: collectionView)
-        //newsCollectionView = collectionView
-        let refresher = UIRefreshControl()
-        refresher.tag = newsSection.hash
-        refresher.addTarget(self, action: #selector(refreshPulled(_:)), for: .valueChanged)
-        //collectionView.addSubview(refresher)
-        collectionView.tag = newsSection.hash
-        hashTable[newsSection.hash] = newsSection
-        collectionView.refreshControl = refresher
-        collectionView.refreshControl?.beginRefreshing()
-        presenter.fetchNews(for: newsSection)
-        return collectionView
-    }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         if collectionView === mainCollectionView {
@@ -93,4 +56,55 @@ extension NewsScreen.View: UICollectionViewDelegate, UICollectionViewDataSource 
         }
     }
     
+}
+
+extension NewsScreen.View {
+    func inferNewsCollectionViewLayout(with size: CGSize) -> UICollectionViewLayout {
+        let numberOfItemsInRow = size.height > size.width ? 1 : 2
+        let size = NSCollectionLayoutSize(
+            widthDimension: NSCollectionLayoutDimension.fractionalWidth(1),
+            heightDimension: NSCollectionLayoutDimension.estimated(200)
+        )
+        
+        let item = NSCollectionLayoutItem(layoutSize: size)
+        
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: size, subitem: item, count: numberOfItemsInRow)
+        group.interItemSpacing = .fixed(12)
+        
+        let section = NSCollectionLayoutSection(group: group)
+        section.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 16, bottom: view.safeAreaInsets.bottom + 8, trailing: 16)
+        section.interGroupSpacing = 18
+        
+        let layout = UICollectionViewCompositionalLayout(section: section)
+        
+        return layout
+    }
+    
+    func createCollectionView(for newsSection: String) -> UICollectionView {
+        let layout = inferNewsCollectionViewLayout(with: view.bounds.size)
+        
+        let collectionView = self.sectionsCollectionViews[newsSection]?.value ?? UICollectionView(frame: .zero, collectionViewLayout: layout)
+        
+        collectionView.dataSource = self
+        collectionView.delegate = self
+        collectionView.register(HorizontalArticleCollectionViewCell.self, forCellWithReuseIdentifier: "NewsCell")
+        collectionView.backgroundColor = .clear
+        collectionView.alwaysBounceVertical = true
+        
+        sectionsCollectionViews[newsSection] = Weak(value: collectionView)
+        
+        let refresher = UIRefreshControl()
+        
+        refresher.tag = newsSection.hash
+        refresher.addTarget(self, action: #selector(refreshPulled(_:)), for: .valueChanged)
+        collectionView.refreshControl = refresher
+        collectionView.refreshControl?.beginRefreshing()
+        
+        collectionView.tag = newsSection.hash
+        hashTable[newsSection.hash] = newsSection
+        collectionView.prefetchDataSource = self
+        presenter.fetchNews(for: newsSection)
+        
+        return collectionView
+    }
 }

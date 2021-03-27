@@ -58,7 +58,7 @@ extension NewsScreen.View {
                         scrollState.scrollingDirection = -1
                     }
                     if abs(contentOffset - scrollState.currentDirectionBeginScrollOffset) > deltaToShowBar || contentOffset <= 0 {
-                        if contentOffset <= 0 {
+                        if contentOffset <= 1 {
                             topBarTopConstraint.constant = Self.topBarHeight//0
                             UIView.animate(withDuration: 0.4) {
                                 self.topBar.clearShadow()

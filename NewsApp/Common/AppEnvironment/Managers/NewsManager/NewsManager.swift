@@ -21,7 +21,7 @@ class NewsManager {
                     .map({ String($0) /*as? String*/ })
             else { return nil }
             guard let managedArticles = Current.localStorage.load(
-                entityName: "LocalArtile",
+                entityName: "LocalArticle",
                 predicate: .init(format: "url IN %@", articleUrls)
             ) else { return nil }
             
@@ -85,7 +85,7 @@ class NewsManager {
   
         return Current.api.news.getEverything(params) { [weak self] fetchedResult in
             if let result = fetchedResult {
-                if let category = params.category {
+                if let category = params.q {
                     self?.insertResult(result, forKey: category)
                     self?.saveResultLocally(result: result, category: category)
                     self?.lock.execute {
@@ -95,7 +95,7 @@ class NewsManager {
                 }
                 completion?(result)
             } else {
-                if params.page == 1 {
+                /*if params.page == 1 {
                     if let category = params.category {
                         if let result = self?.getCachedResult(forCategory: category) {
                             completion?(result)
@@ -109,7 +109,7 @@ class NewsManager {
                             }
                         }
                     }
-                }
+                }*/
                 completion?(nil)
             }
         }

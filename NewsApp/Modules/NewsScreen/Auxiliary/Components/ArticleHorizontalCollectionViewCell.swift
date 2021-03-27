@@ -29,6 +29,12 @@ class HorizontalArticleCollectionViewCell: UICollectionViewCell {
         //articleView.layoutIfNeeded()
     }
     
+    override var bounds: CGRect {
+        didSet {
+        //    isBeingPresented()
+        }
+    }
+    
     private func buildHierarchy() {
         contentView.addSubview(articleView)
     }

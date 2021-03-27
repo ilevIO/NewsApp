@@ -10,33 +10,11 @@ import UIKit
 import WebKit
 import Combine
 
-class NewsLoader: SubscriberObject {
-    var subscriptionId: Int = UUID().hashValue
-    
-    func checkLocalStorage() {
-        //Exctract everything from core data
-    }
-    
-    func storeLocally(articles: [ArticleDTO]) {
-         //core data save object
-    }
-    
-    func loadNext(query: String? = nil, currentLoaded: Int, for timePeriod: ClosedRange<Date>, category: String? = nil, completion: ((FetchedEverything?) -> Void)?) {
-        if currentLoaded == 0 {
-            checkLocalStorage()
-        }
-        Current.news.getEverything(.init(q: category ?? query, from: timePeriod.lowerBound, to: timePeriod.upperBound, category: nil)) { news in
-            if let news = news {
-                
-            }
-            completion?(news)
-        }.flatMap({ Current.api.subscriptions.registerTask($0, for: self) })
-    }
-}
-
 extension NewsScreen {
     class Presenter {
         weak var view: NewsScreenView?
+        
+        var sections = ["Business", "Sport", "Entertainment", "World", "Belarus"]//["Apple", "IT", "Belarus", "Cocoa", "iOS"]
         
         private(set) var subscriptionId = UUID().hashValue
         var news: [String: NewsSectionModel] = [:]
@@ -56,7 +34,7 @@ extension NewsScreen {
             currentPeriod[category] = currentCategoryPeriod
             news[category] = .init(name: category, articles: [])
             //self.currentPeriod = Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.lowerBound)!...Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.upperBound)!
-            newsLoader.loadNext(query: query.isEmpty ? nil : query, currentLoaded: 0, for: currentCategoryPeriod) { [weak self] news in
+            newsLoader.loadNext(query: query.isEmpty ? nil : query, currentLoaded: 0, for: currentCategoryPeriod, category: query.isEmpty ? category : nil) { [weak self] news in
                 guard let self = self, let news = news else { return }
                 
                 if !news.articles.isEmpty {
@@ -76,9 +54,9 @@ extension NewsScreen {
                     )
                 }
                 DispatchQueue.main.async {
-                    UIView.animate(withDuration: 0.3) {
+                    //UIView.animate(withDuration: 0.3) {
                         self.view?.update(with: self.news[category]?.articles ?? [], for: category, forced: true)
-                    }
+                    //}
                 }
             }
         }
@@ -101,17 +79,39 @@ extension NewsScreen {
         }
         
         func loadNext(category: String) {
+            if news[category] == nil {
+                if let result = Current.news.getCachedResult(forCategory: category) {
+                    /*self.news[category] = .init(
+                        name: category,
+                        articles: result
+                            .articles
+                            .compactMap {
+                                ArticleCellModel(model: ArticleModel(with: $0), isExpanded: false)
+                            }
+                    )*/
+                    DispatchQueue.main.async {
+                        self.view?.update(
+                            with: result.articles.compactMap {  ArticleCellModel(model: ArticleModel(with: $0), isExpanded: false) },
+                            for: category,
+                            forced: false
+                        )
+                    }
+                }
+            }
+            
             let currentPeriod = self.currentPeriod[category] ?? lastPeriod
             self.currentPeriod[category] = currentPeriod
             self.news[category] = self.news[category] ?? .init(name: category, articles: [])
+            guard currentPeriod.lowerBound.distance(to: .init()) < 7 * 24 * 60 * 60 else { return }
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+                //Change of self.currentPeriod indicates that it has been loaded for currend period
                 guard let self = self, currentPeriod == self.currentPeriod[category] else { return }
                 
                 self.newsLoader.loadNext(
-                    query: self.query.isEmpty ? category : self.query,
+                    query: self.query.isEmpty ? nil : self.query,
                     currentLoaded: self.news[category]?.articles.count ?? 0,
                     for: currentPeriod,
-                    category: nil
+                    category: self.query.isEmpty ? category : nil
                 ) { [weak self] news in
                     guard let self = self else { return }
                     guard let news = news else {
@@ -142,7 +142,7 @@ extension NewsScreen {
             
         }
         
-        func scrollDidReachBounds(withOffset offset: CGFloat, in category: String) {
+        func scrollDidReachBounds(withOffset offset: CGFloat = .zero, in category: String) {
             loadNext(category: category)
         }
         

@@ -6,6 +6,7 @@
         <attribute name="content" optional="YES" attributeType="String"/>
         <attribute name="descriptionText" optional="YES" attributeType="String"/>
         <attribute name="lastAccess" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="publishedAt" optional="YES" attributeType="String"/>
         <attribute name="sourceName" optional="YES" attributeType="String"/>
         <attribute name="title" optional="YES" attributeType="String"/>
         <attribute name="url" optional="YES" attributeType="String"/>
@@ -22,7 +23,7 @@
         <attribute name="url" attributeType="String"/>
     </entity>
     <elements>
-        <element name="LocalArticle" positionX="-63" positionY="-18" width="128" height="178"/>
+        <element name="LocalArticle" positionX="-63" positionY="-18" width="128" height="193"/>
         <element name="LocalImage" positionX="-54" positionY="18" width="128" height="88"/>
         <element name="LocalCategoryResult" positionX="-36" positionY="45" width="128" height="88"/>
     </elements>

@@ -30,12 +30,12 @@ public extension Endpoints.News.GetEverything {
         public var excludeDomains: [String]? = nil
         public var from: Date? = nil
         public var to: Date? = nil
-        public var language: String? = nil
+        public var language: String? = "en"
         public var sortBy: GetNewsSortMethod? = nil
         public var pageSize: Int? = nil
         public var page: Int? = nil
-        public var country: String? = nil
-        public var category: String? = nil
+        //public var country: String? = "us"
+        //public var category: String? = nil
     }
 }
     

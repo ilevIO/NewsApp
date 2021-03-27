@@ -9,8 +9,10 @@ import Foundation
 import CoreData
 
 class LocalStorageManager {
-    var coreDataArticlesLimit = 20
-    var coreDataImagesLimit = 10
+    var coreDataArticlesLimit = 200
+    var coreDataImagesLimit = 20
+    
+    var contextLock = NSLock()
     
     func drop(entityName: String) {
         let fetch = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
@@ -37,34 +39,48 @@ class LocalStorageManager {
                 let oldestToDelete = entities
                     .sorted(by: { ($0.value(forKey: "lastAccess") as? Date ?? Date()) > ($1.value(forKey: "lastAccess") as? Date ?? Date()) })
                     .dropFirst(1)
+                contextLock.lock()
                 oldestToDelete.forEach({
                     managedContext.delete($0)
                 })
+                contextLock.unlock()
             }
         }
     }
-    
-    func save(entityFields: [String: Any], to entityName: String) {
+    struct PrimaryKey {
+        var key: String
+        var value: Any?
+    }
+    func save(entityFields: [String: Any?], to entityName: String, primaryKey: PrimaryKey? = nil) {
+        //TODO: add primary key constraint condition
         
-        let managedContext = self.persistentContainer.viewContext
-        
-        eraseToLimits(entityName: entityName)
-        
-        let entity =
-          NSEntityDescription.entity(forEntityName: entityName,
-                                     in: managedContext)!
-        
-        let project = NSManagedObject(entity: entity,
-                                     insertInto: managedContext)
-        
-        for keyValue in entityFields {
-            project.setValue(keyValue.value, forKey: keyValue.key)
-        }
-        
-        do {
-            try managedContext.save()
-        } catch let error as NSError {
-            print("Could not save. \(error), \(error.userInfo)")
+        DispatchQueue.main.async {
+            let managedContext = self.persistentContainer.viewContext
+            
+            self.eraseToLimits(entityName: entityName)
+            
+            let entity =
+              NSEntityDescription.entity(forEntityName: entityName,
+                                         in: managedContext)!
+            
+            let project = NSManagedObject(entity: entity,
+                                         insertInto: managedContext)
+            
+            for keyValue in entityFields {
+                if keyValue.value != nil {
+                    project.setValue(keyValue.value, forKey: keyValue.key)
+                }
+            }
+            //self.contextLock.lock()
+            /*if !managedContext.insertedObjects.contains(project) {
+                managedContext.insert(project)
+            }*/
+            do {
+                try managedContext.save()
+            } catch let error as NSError {
+                print("Could not save. \(error), \(error.userInfo)")
+            }
+            //self.contextLock.unlock()
         }
     }
     
@@ -76,7 +92,10 @@ class LocalStorageManager {
         if let predicate = predicate {
             fetchRequest.predicate = predicate
         }
-        
+        contextLock.lock()
+        defer {
+            contextLock.unlock()
+        }
         do {
             return try managedContext.fetch(fetchRequest)
         } catch let error as NSError {
@@ -143,7 +162,8 @@ class LocalStorageManager {
             }
         }
         
-        deleteAllData("LocalCategoryResult")
+        //deleteAllData("LocalCategoryResult")
+        //deleteAllData("LocalArticle")
         
     }
 }
