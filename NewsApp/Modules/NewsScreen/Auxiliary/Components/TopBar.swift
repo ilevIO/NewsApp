@@ -173,20 +173,21 @@ struct SearchControlHandlers {
 }
 
 class NewsTopBarView: UIView {
+    
+    var searchControlHandlers: SearchControlHandlers
     //MARK: - Subviews
+    var contentView: UIView = .init()
+    
     var categoriesStackView: CategoriesStackView = .init()
     var categoriesScrollView: UIScrollView = .init()
     var searchButton: UIButton = .init()
-    var searchView: UIView = .init()
     var searchBar: UISearchBar = .init()
     
-    var searchControlHandlers: SearchControlHandlers
-    
-    var contentView: UIView = .init()
-    
+    //MARK: - Constraints
     var expandedSearchConstraints: [NSLayoutConstraint] = []
     var collapsedSearchConstraints: [NSLayoutConstraint] = []
     
+    //MARK: - Handlers
     @objc func searchButtonTapped(_ sender: UIButton) {
         searchControlHandlers.onSearchButtonTapped?()
         enableExpandedSearchLayout()
@@ -211,6 +212,7 @@ class NewsTopBarView: UIView {
         NSLayoutConstraint.activate(collapsedSearchConstraints)
     }
     
+    //MARK: - Setup
     private func buildHierarhy() {
         addSubview(contentView)
         contentView.addSubview(categoriesScrollView)
@@ -222,7 +224,6 @@ class NewsTopBarView: UIView {
     private func configureSubviews() {
         categoriesStackView.axis = .horizontal
         categoriesStackView.alignment = .bottom
-        //categoriesStackView.distribution = .fill
         categoriesScrollView.showsHorizontalScrollIndicator = false
         
         searchButton.setImage(.add, for: .normal)
@@ -240,10 +241,10 @@ class NewsTopBarView: UIView {
         categoriesScrollView.translatesAutoresizingMaskIntoConstraints = false
         categoriesScrollView.attach(to: contentView, left: 0, top: 0, bottom: 0)
         
-        
         categoriesStackView.translatesAutoresizingMaskIntoConstraints = false
         categoriesStackView.attach(to: categoriesScrollView, left: 0, right: 0)
-        categoriesStackView.attach(to: contentView, top: 0, bottom: 0)
+        categoriesStackView.attach(to: contentView, bottom: 0)
+        categoriesStackView.attach(to: searchBar, top: 0)
         
         searchBar.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -294,5 +295,9 @@ extension NewsTopBarView: UISearchBarDelegate {
             self.layoutIfNeeded()
             self.setNeedsDisplay()
         }
+    }
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        endEditing(true)
     }
 }

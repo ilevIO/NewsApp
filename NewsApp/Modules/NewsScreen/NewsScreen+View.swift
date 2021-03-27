@@ -13,25 +13,26 @@ extension NewsScreen {
         View(with: presenter)
     }
     
-    struct NewsSectionModel {
-        var name: String
-        var articles: [ArticleCellModel]
-    }
-
     class View: UIViewController {
+        //MARK: - Consts
         static let topBarHeight: CGFloat = 60
         
-        var usesCollectionView = true
         var presenter: Presenter!
         
+        //MARK: - State
+        private(set)var _viewDidAppear = false
         var scrollState: ScrollState = .init()
         var prevTopBarVisibleHeight: CGFloat = 0
         
-        var isReloadingData = false
-        //var news: [ArticleCellModel] { presenter.news }
         var newsSections: [String: NewsSectionModel] = [:]
+        
+        private var hashTable: [Int: String] = [:]
+        var sections: [String] { presenter.sections }
+        
         //MARK: - Subviews
-        var newsCollectionView: UICollectionView!
+        var mainCollectionView: UICollectionView!
+        ///CollectionViews with articles related to their categories
+        var sectionsCollectionViews: [String: Weak<UICollectionView>] = [:]
         
         var topBar: NewsTopBarView!
         var searchBar = UISearchBar()
@@ -39,10 +40,30 @@ extension NewsScreen {
         //MARK: - Constraints
         var topBarTopConstraint: NSLayoutConstraint!
         
+        //MARK: - Handlers
+        @objc func emptyAreaTapped(_ recognizer: UITapGestureRecognizer) {
+            view.endEditing(true)
+        }
+        
+        @objc func refreshPulled(_ sender: UIRefreshControl) {
+            withTagToSection(tag: sender.tag) { section in
+                if !presenter.refresh(for: section) {
+                    sender.endRefreshing()
+                }
+            }
+        }
+        
+        func sectionCreated(_ newSection: String) {
+            hashTable[newSection.hash] = newSection
+        }
+        
+        ///Performs action with category name infering from its hash if found
+        func withTagToSection(tag: Int, action: ((String) -> Void)) {
+            guard let section = hashTable[tag] else { return }
+            action(section)
+        }
+        
         //MARK: - Setup
-        private var hashTable: [Int: String] = [:]
-        var mainCollectionView: UICollectionView!
-        var sections: [String] { presenter.sections }
         private func setupMainCollectionView() {
             let size = NSCollectionLayoutSize(
                 widthDimension: NSCollectionLayoutDimension.fractionalWidth(1),
@@ -90,43 +111,9 @@ extension NewsScreen {
             setupTopBarView()
         }
         
-        @objc func emptyAreaTapped(_ recognizer: UITapGestureRecognizer) {
-            view.endEditing(true)
-        }
-        
-        @objc func refreshPulled(_ sender: UIRefreshControl) {
-            withTagToSection(tag: sender.tag) { section in
-                presenter.refresh(for: section)
-            }
-        }
-        
         private func buildHierarchy() {
             view.addSubview(mainCollectionView)
             view.addSubview(topBar)
-        }
-        
-        override func viewDidLayoutSubviews() {
-            super.viewDidLayoutSubviews()
-            
-            //newsTableView.beginUpdates()
-            //newsTableView.endUpdates()
-            //newsCollectionView.contentInset.left = 16
-            //newsCollectionView.contentInset.right = 16
-        }
-        var _viewDidAppear = false
-        
-        func sectionCreated(_ newSection: String) {
-            hashTable[newSection.hash] = newSection
-        }
-        
-        override func viewWillAppear(_ animated: Bool) {
-            super.viewWillAppear(animated)
-            _viewDidAppear = false
-        }
-        
-        override func viewDidAppear(_ animated: Bool) {
-            super.viewDidAppear(animated)
-            _viewDidAppear = true
         }
         
         private func configureSubviews() {
@@ -145,51 +132,9 @@ extension NewsScreen {
             mainCollectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "NewsCell")
             mainCollectionView.backgroundColor = .clear
             mainCollectionView.alwaysBounceHorizontal = true
-            
-            searchBar.widthAnchor.constraint(equalToConstant: 200).isActive = true
-            searchBar.barStyle = .default
-            searchBar.backgroundImage = .init()
-            searchBar.delegate = self
-            searchBar.showsCancelButton = true
-            
-            //searchButton.setImage(UIImage(systemName: "search"), for: .normal)
-            
-        }
-        var isSearchExpanded = false {
-            didSet {
-                onSearchToggled()
-            }
-        }
-        
-        var searchBarExpandedConstraints: [NSLayoutConstraint] = []
-        var searchBarCollapsedConstraints: [NSLayoutConstraint] = []
-        
-        func expandSearchBar() {
-            NSLayoutConstraint.deactivate(searchBarCollapsedConstraints)
-            NSLayoutConstraint.activate(searchBarExpandedConstraints)
-        }
-        
-        func collapseSearchBar() {
-            NSLayoutConstraint.deactivate(searchBarExpandedConstraints)
-            NSLayoutConstraint.activate(searchBarCollapsedConstraints)
-        }
-        
-        func onSearchToggled() {
-            if isSearchExpanded {
-                expandSearchBar()
-            } else {
-                collapseSearchBar()
-            }
-        }
-        
-        @objc func searchButtonTapped(_ sender: UIButton) {
-            isSearchExpanded = true
         }
         
         private func setupLayout() {
-            let horizontalMargin: CGFloat = 8
-            let verticalInset: CGFloat = 8
-            
             topBar.translatesAutoresizingMaskIntoConstraints = false
             topBar.attach(to: self.view, left: 0, right: 0)
             topBarTopConstraint = topBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: Self.topBarHeight)
@@ -210,22 +155,6 @@ extension NewsScreen {
         }
         
         //MARK: - Lifecycle
-        override func viewDidLoad() {
-            super.viewDidLoad()
-            
-            setup()
-        }
-        
-        struct Weak<T: AnyObject> {
-            weak var value: T?
-        }
-        
-        func withTagToSection(tag: Int, action: ((String) -> Void)) {
-            guard let section = hashTable[tag] else { return }
-            action(section)
-        }
-        
-        var sectionsCollectionViews: [String: Weak<UICollectionView>] = [:]
         
         override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
             super.viewWillTransition(to: size, with: coordinator)
@@ -262,6 +191,21 @@ extension NewsScreen {
             })
         }
         
+        override func viewWillAppear(_ animated: Bool) {
+            super.viewWillAppear(animated)
+            _viewDidAppear = false
+        }
+        
+        override func viewDidAppear(_ animated: Bool) {
+            super.viewDidAppear(animated)
+            _viewDidAppear = true
+        }
+        
+        override func viewDidLoad() {
+            super.viewDidLoad()
+            setup()
+        }
+        
         init(with presenter: Presenter) {
             self.presenter = presenter
             
@@ -277,81 +221,34 @@ extension NewsScreen {
 }
 
 extension NewsScreen.View: NewsScreenView {
-    func update(with news: [ArticleCellModel], for section: String, forced: Bool) {
-        
-        //Fixing on current section collectionview, preventing from scrolling to other
-        var section = section
-        if section.isEmpty {
-            mainCollectionView.scrollToItem(at: .init(item: 0, section: 0), at: .left, animated: false)
-            section = sections[0]
+    func update(with news: [ArticlePresentationModel], for category: String?, forced: Bool) {
+        var updatedCategory: String
+        //Load search results in the first collectionView data
+        if let category = category {
+            updatedCategory = category
         } else {
-            mainCollectionView.isScrollEnabled = true
+            //Performing search as the first category
+            mainCollectionView.scrollToItem(at: .init(item: 0, section: 0), at: .left, animated: false)
+            updatedCategory = sections[0]
         }
         
         //Preventing update when articles not changed
-        if let currentNews = self.newsSections[section]?.articles,
+        if let currentNews = self.newsSections[updatedCategory]?.articles,
            currentNews.count == news.count &&
-            currentNews
-            .allSatisfy({ currentArticle in
+            currentNews.allSatisfy({ currentArticle in
                 news.contains { $0.model == currentArticle.model }
-            })
-        {
-            return
-        }
+            }) { return }
         
-        self.newsSections[section] = .init(name: section, articles: news) //= presenter.news
+        newsSections[updatedCategory] = .init(name: updatedCategory, articles: news)
         
-        guard let newsCollectionView = self.sectionsCollectionViews[section]?.value else { return }
+        guard let newsCollectionView = self.sectionsCollectionViews[updatedCategory]?.value else { return }
         DispatchQueue.main.async {
-            //newsCollectionView.insertItems(at: (currentNumber..<currentNumber + toInsert).map({ IndexPath(item: $0, section: 0) }))
             newsCollectionView.refreshControl?.endRefreshing()
             UIView.transition(with: newsCollectionView, duration: 0.2, options: .transitionCrossDissolve) {
                 newsCollectionView.reloadData()
                 newsCollectionView.collectionViewLayout.invalidateLayout()
                 newsCollectionView.layoutIfNeeded()
             }
-                
-            //newsCollectionView.setNeedsLayout()
-            //DispatchQueue.main.async {
-                /*UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseInOut) {
-                    newsCollectionView.collectionViewLayout.invalidateLayout()
-                    newsCollectionView.layoutIfNeeded()
-                }*/
-            //}
-            /*newsCollectionView.collectionViewLayout.invalidateLayout()
-            newsCollectionView.layoutIfNeeded()*/
-        }
-        return
-        if !forced {
-            guard let newsCollectionView = self.sectionsCollectionViews[section]?.value else { return }
-            newsCollectionView.refreshControl?.endRefreshing()
-            let currentNumber = newsCollectionView.numberOfItems(inSection: 0)
-            let toInsert = news.count - currentNumber
-            guard toInsert > 0 else {
-                if newsCollectionView.numberOfItems(inSection: 0) == 0 {
-                    //newsCollectionView.backgroundColor = .systemRed
-                } else {
-                    //newsCollectionView.backgroundColor = .clear
-                }
-                return
-            }
-            //UIView.animate(withDuration: 0.3) {
-            //newsTableView.beginUpdates()
-            
-            
-        } else {
-            guard let newsCollectionView = self.sectionsCollectionViews[section]?.value else { return }
-            
-            DispatchQueue.main.async {
-                newsCollectionView.refreshControl?.endRefreshing()
-            }
-            newsCollectionView.reloadData()
-              
         }
     }
-}
-
-
-extension NewsScreen.View: UIScrollViewDelegate {
-    
 }

@@ -16,11 +16,9 @@ extension UIStackView {
         }
 
         for view in removedSubviews {
-            //if let viewSuperview = view.superview {
-                view.removeAllConstraints()
-                NSLayoutConstraint.deactivate(view.constraints)
-                view.removeFromSuperview()
-            //}
+            view.removeAllConstraints()
+            NSLayoutConstraint.deactivate(view.constraints)
+            view.removeFromSuperview()
         }
     }
 }

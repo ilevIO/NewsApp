@@ -5,6 +5,8 @@
 //  Created by Ilya Yelagov on 3/24/21.
 //
 
-import Foundation
+import UIKit
 
-protocol RootView: class { }
+protocol RootView: class {
+    func navigate(to viewController: UIViewController)
+}

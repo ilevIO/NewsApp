@@ -8,13 +8,6 @@
 import Foundation
 import UIKit
 
-extension UIView {
-    ///Notifies view with all its subviews that it is layouted
-    @objc func isBeingPresented() {
-        subviews.forEach { $0.isBeingPresented() }
-    }
-}
-
 class HorizontalArticleCollectionViewCell: UICollectionViewCell {
     
     var toggleExpanded: (() -> Void)? {
@@ -24,17 +17,11 @@ class HorizontalArticleCollectionViewCell: UICollectionViewCell {
     
     var articleView: ArticleCellView = .init()
     
-    func configure(with articleCellModel: ArticleCellModel) {
+    func configure(with articleCellModel: ArticlePresentationModel) {
         articleView.configure(with: articleCellModel)
-        //articleView.layoutIfNeeded()
     }
     
-    override var bounds: CGRect {
-        didSet {
-        //    isBeingPresented()
-        }
-    }
-    
+    //MARK: - Setup
     private func buildHierarchy() {
         contentView.addSubview(articleView)
     }

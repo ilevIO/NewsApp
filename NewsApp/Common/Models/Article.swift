@@ -7,7 +7,7 @@
 
 import Foundation
 
-typealias Article = ArticleDTO
+//typealias Article = ArticleDTO
 /*public struct Article {
     public var source: String?
     public var author: String?

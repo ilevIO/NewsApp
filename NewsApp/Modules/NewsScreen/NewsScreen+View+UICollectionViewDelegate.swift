@@ -113,12 +113,13 @@ extension NewsScreen.View {
             refresher.tag = newsSection.hash
             refresher.addTarget(self, action: #selector(refreshPulled(_:)), for: .valueChanged)
             collectionView.refreshControl = refresher
-            collectionView.refreshControl?.beginRefreshing()
         }
+        collectionView.refreshControl?.beginRefreshing()
         
         collectionView.backgroundColor = .clear
         
         sectionsCollectionViews[newsSection] = Weak(value: collectionView)
+        
         
         collectionView.tag = newsSection.hash
         sectionCreated(newsSection)

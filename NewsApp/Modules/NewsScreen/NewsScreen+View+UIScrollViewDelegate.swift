@@ -16,14 +16,15 @@ extension NewsScreen.View {
     }
 }
 
-extension NewsScreen.View {
+extension NewsScreen.View: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         guard scrollView !== mainCollectionView else {
-            //To prevent 
+            //To prevent from bidirectional scroll
             scrollView.contentOffset.y = 0
             return
         }
-        if !scrollState.lockScroll && _viewDidAppear && false {
+        
+        if !scrollState.lockScroll && _viewDidAppear {
             let contentOffset = scrollView.contentOffset.y
     
             let deltaToShowBar: CGFloat = 0

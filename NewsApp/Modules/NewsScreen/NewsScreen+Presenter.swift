@@ -14,109 +14,133 @@ extension NewsScreen {
     class Presenter {
         weak var view: NewsScreenView?
         
-        var sections = ["Business", "Sport", "Entertainment", "World", "Belarus"]//["Apple", "IT", "Belarus", "Cocoa", "iOS"]
-        
-        private(set) var subscriptionId = UUID().hashValue
+        var newsLoader = NewsLoader()
+        ///Default sections. Are to be made modifiable in future
+        let sections = ["Business", "Sport", "Entertainment", "World", "Belarus"]
+        ///Max number of days to load articles for
+        let loadArticlesDayLimit: TimeInterval = 7
+        ///Articles by their category name
         var news: [String: NewsSectionModel] = [:]
         
-        var newsLoader = NewsLoader()
-        
+        ///Period currently to be loaded for category
         var currentPeriod: [String: ClosedRange<Date>] = [:]
+        ///From-yesterday to now range
         var lastPeriod: ClosedRange<Date> {
             Calendar.current.date(byAdding: .day, value: -1, to: Date())!...Date()
         }
         
+        ///Indicates whether to perform search request of filter loaded
+        var shouldPerformGlobalSearch = false
         var query = ""
         var lastQueryTask: Cancellable?
         
-        func refresh(for category: String) {
+        ///Resets period for the category and loads articles. Returns flag if refresh is allowed
+        func refresh(for category: String?) -> Bool {
+            //Not reloading when is searching locally
+            guard query.isEmpty || shouldPerformGlobalSearch else { return false }
+            
             let currentCategoryPeriod = lastPeriod
-            currentPeriod[category] = currentCategoryPeriod
-            news[category] = .init(name: category, articles: [])
-            //self.currentPeriod = Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.lowerBound)!...Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.upperBound)!
+            if let category = category {
+                currentPeriod[category] = currentCategoryPeriod
+                news[category] = .init(name: category, articles: [])
+            }
+            //Ignore category and period if is searching
             newsLoader.loadNext(
                 query: query.isEmpty ? nil : query,
-                currentLoaded: 0,
                 for: query.isEmpty ? currentCategoryPeriod : nil,
                 category: query.isEmpty ? category : nil) { [weak self] news in
                 guard let self = self, let news = news else { return }
                 
-                if !news.articles.isEmpty {
-                    let currentCategoryPeriod = self.currentPeriod[category] ?? self.lastPeriod
-                    self.currentPeriod[category] = Calendar.current.date(byAdding: .day, value: -1, to: currentCategoryPeriod.lowerBound)!...Calendar.current.date(byAdding: .day, value: -1, to: currentCategoryPeriod.upperBound)!
-                    /*self.news.append(
-                        contentsOf:
-                            news.articles.compactMap {
-                                ArticleCellModel(model: ArticleModel(with: $0), isExpanded: false)
-                            }
-                    )*/
-                    self.news[category]?.articles.append(
-                        contentsOf:
-                            news.articles.compactMap {
-                                ArticleCellModel(model: ArticleModel(with: $0), isExpanded: false)
-                            }
-                    )
+                let articles: [ArticlePresentationModel] = news.articles.compactMap {
+                    ArticlePresentationModel(model: ArticleModel(with: $0), isExpanded: false)
                 }
+                
+                //Change current ccategory period only if
+                if let category = category, !news.articles.isEmpty {
+                    
+                    let currentCategoryPeriod = self.currentPeriod[category] ?? self.lastPeriod
+                    //Change period to previous day
+                    self.currentPeriod[category] = Calendar.current.date(byAdding: .day, value: -1, to: currentCategoryPeriod.lowerBound)!...Calendar.current.date(byAdding: .day, value: -1, to: currentCategoryPeriod.upperBound)!
+                    
+                    self.news[category]?.articles.append(contentsOf: articles)
+                }
+                
                 DispatchQueue.main.async {
-                    //UIView.animate(withDuration: 0.3) {
-                        self.view?.update(with: self.news[category]?.articles ?? [], for: category, forced: true)
-                    //}
+                    self.view?.update(with: articles, for: category, forced: true)
                 }
             }
+            return true
         }
         
+        //MARK: - Handlers
         func searchQueryChanged(to query: String) {
-            lastQueryTask?.cancel()
+            news.values.forEach({ category in
+                //Update with all if query is empty
+                let filteredArticles = query.isEmpty
+                    ? category.articles
+                    : category.articles.filter({
+                        $0.model.title.lowercased().contains(query.lowercased())
+                    }
+                    )
+                DispatchQueue.main.async {
+                    self.view?.update(with: filteredArticles, for: category.name, forced: true)
+                }
+            })
+            /*lastQueryTask?.cancel()
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                 self.query = query
                 self.refresh(for: "")
-            }
+            }*/
         }
         
         func newsCellTapped(at index: IndexPath, in category: String) {
             guard let _url = news[category]?.articles[index.item].model.url, let url = URL(string: _url) else { return }
             let webView = WKWebView()
-            let vc = UIViewController()
-            vc.view.fill(with: webView)
+            let webViewController = UIViewController()
+            webViewController.view.fill(with: webView)
             webView.load(.init(url: url))
-            Current.root?.rootView.navigationController?.pushViewController(vc, animated: true)
+            Current.root?.navigate(to: webViewController)
         }
         
-        func loadNext(category: String) {
-            if news[category] == nil {
-                if let result = Current.news.getCachedResult(forCategory: category) {
-                    /*self.news[category] = .init(
-                        name: category,
-                        articles: result
-                            .articles
-                            .compactMap {
-                                ArticleCellModel(model: ArticleModel(with: $0), isExpanded: false)
-                            }
-                    )*/
-                    DispatchQueue.main.async {
-                        self.view?.update(
-                            with: result.articles.compactMap {  ArticleCellModel(model: ArticleModel(with: $0), isExpanded: false) },
-                            for: category,
-                            forced: false
-                        )
-                    }
+        //MARK: - News loading
+        func loadCachedArticles(for category: String) {
+            if let result = Current.news.getCachedResult(forCategory: category) {
+                DispatchQueue.main.async {
+                    self.view?.update(
+                        with: result.articles.compactMap {  ArticlePresentationModel(model: ArticleModel(with: $0), isExpanded: false) },
+                        for: category,
+                        forced: false
+                    )
                 }
+            }
+        }
+        
+        func isWithinPeriod(date: Date, days: TimeInterval) -> Bool {
+            date.distance(to: .init()) < days * 24 * 60 * 60
+        }
+        
+        
+        func loadNext(category: String) {
+            //Use cached articles as placeholders until relevant are being fetched if it is the first time loading category
+            if news[category] == nil {
+                loadCachedArticles(for: category)
             }
             
             let currentPeriod = self.currentPeriod[category] ?? lastPeriod
             self.currentPeriod[category] = currentPeriod
             self.news[category] = self.news[category] ?? .init(name: category, articles: [])
-            guard currentPeriod.lowerBound.distance(to: .init()) < 7 * 24 * 60 * 60 else { return }
+            
+            guard isWithinPeriod(date: currentPeriod.lowerBound, days: loadArticlesDayLimit) else { return }
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
                 //Change of self.currentPeriod indicates that it has been loaded for currend period
                 guard let self = self, currentPeriod == self.currentPeriod[category] else { return }
                 
                 self.newsLoader.loadNext(
                     query: self.query.isEmpty ? nil : self.query,
-                    currentLoaded: self.news[category]?.articles.count ?? 0,
                     for: currentPeriod,
                     category: self.query.isEmpty ? category : nil
                 ) { [weak self] news in
+                    
                     guard let self = self else { return }
                     guard let news = news else {
                         //Show error message
@@ -136,7 +160,7 @@ extension NewsScreen {
                         self.news[category]?.articles.append(
                             contentsOf: newArticles
                                 .compactMap {
-                                    ArticleCellModel(
+                                    ArticlePresentationModel(
                                         model: ArticleModel(with: $0),
                                         isExpanded: false)
                                 }
@@ -154,33 +178,7 @@ extension NewsScreen {
         }
         
         func fetchNews(for category: String) {
-            scrollDidReachBounds(in: category)
-            /*let sevenDaysBack = Calendar.current.date(byAdding: .day, value: -7, to: .init())!
-            Current.api.news.getEverything(
-                .init(
-                    q: "apple",
-                    qInTitle: nil,
-                    sources: nil,
-                    domains: nil,
-                    excludeDomains: nil,
-                    from: sevenDaysBack,
-                    to: nil,
-                    language: "en",
-                    sortBy: nil,
-                    pageSize: nil,
-                    page: nil,
-                    country: nil,
-                    category: nil
-                )
-            ) { [weak self] news in
-                guard let self = self, let news = news else { return }
-                self.news = news.articles.map({ ArticleModel(with: $0) })
-                DispatchQueue.main.async {
-                    self.view?.update()
-                }
-            }.flatMap({ Current.api.subscriptions.registerTask($0, for: self) })*/
+            loadNext(category: category)
         }
     }
 }
-
-extension NewsScreen.Presenter: SubscriberObject { }

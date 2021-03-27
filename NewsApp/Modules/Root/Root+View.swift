@@ -8,7 +8,7 @@
 import UIKit
 
 extension Root {
-    class View: UINavigationController, RootView {
+    class View: UINavigationController {
         
         var presenter: Presenter!
         
@@ -33,5 +33,11 @@ extension Root {
         required init?(coder: NSCoder) {
             fatalError("init(coder:) has not been implemented")
         }
+    }
+}
+
+extension Root.View: RootView {
+    func navigate(to viewController: UIViewController) {
+        pushViewController(viewController, animated: true)
     }
 }

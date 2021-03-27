@@ -16,29 +16,29 @@ class NewsManager {
     
     func getLocalStored(forCategory category: String) -> Result? {
         if let result = Current.localStorage.load(
-            entityName: "LocalCategoryResult",
-            predicate: .init(format: "category == %@", category)
-        )?
-            .first {
-            guard let articleUrls = (result.value(forKey: "articleUrls") as? String)?.split(separator: ",")
-                    .map({ String($0) /*as? String*/ })
+            entityName: CoreDataEntities.localCategoryResult,
+            predicate: .init(format: "\(CoreDataLocalCategoryResult.category) == %@", category)
+        )?.first {
+            guard let articleUrls = (result.value(forKey: CoreDataLocalCategoryResult.articleUrls) as? String)?.split(separator: ",")
+                    .map({ String($0) })
             else { return nil }
+            
             guard let managedArticles = Current.localStorage.load(
-                entityName: "LocalArticle",
-                predicate: .init(format: "url IN %@", articleUrls)
+                entityName: CoreDataEntities.localArticle,
+                predicate: .init(format: "\(CoreDataLocalArticle.url) IN %@", articleUrls)
             ) else { return nil }
             
             let articles = managedArticles.map({
                 ArticleDTO(
-                    source: ($0.value(forKey: "sourceName") as? String)
+                    source: ($0.value(forKey: CoreDataLocalArticle.sourceName) as? String)
                         .flatMap({ NewsSource(id: "0", name: $0) }),
-                    author: $0.value(forKey: "author") as? String,
-                    title: $0.value(forKey: "title") as? String,
-                    description: $0.value(forKey: "descriptionText") as? String,
-                    url: $0.value(forKey: "url") as? String,
-                    urlToImage: $0.value(forKey: "urlToImage") as? String,
-                    publishedAt: $0.value(forKey: "publishedAt") as? String,
-                    content: $0.value(forKey: "content") as? String)
+                                      author: $0.value(forKey: CoreDataLocalArticle.author) as? String,
+                                                       title: $0.value(forKey: CoreDataLocalArticle.title) as? String,
+                    description: $0.value(forKey: CoreDataLocalArticle.descriptionText) as? String,
+                    url: $0.value(forKey: CoreDataLocalArticle.url) as? String,
+                    urlToImage: $0.value(forKey: CoreDataLocalArticle.urlToImage) as? String,
+                    publishedAt: $0.value(forKey: CoreDataLocalArticle.publishedAt) as? String,
+                    content: $0.value(forKey: CoreDataLocalArticle.content) as? String)
             })
             
             let fetchedResult = Result(with: .init(status: .ok, totalResults: articles.count, articles: articles))
@@ -51,29 +51,30 @@ class NewsManager {
     func saveResultLocally(result: Result, category: String) {
         Current.localStorage.save(
             entityFields: [
-                "category": category,
-                "articleUrls": result.articles.compactMap({ $0.url }).joined(separator: ","),
-                "lastAccess": Date()],
-            to: "LocalCategoryResult",
-            primaryKey: .init(key: "category", value: category)
+                CoreDataLocalCategoryResult.category: category,
+                CoreDataLocalCategoryResult.articleUrls: result.articles.compactMap({ $0.url }).joined(separator: ","),
+                CoreDataLocalCategoryResult.lastAccess: Date()],
+            to: CoreDataEntities.localCategoryResult,
+            primaryKey: .init(key: CoreDataLocalCategoryResult.category, value: category)
         )
         result.articles.forEach({
             Current.localStorage.save(
                 entityFields: [
-                    "category": category,
-                    "author": $0.author,
-                    "sourceName": $0.source?.name,
-                    "urlToImage": $0.urlToImage,
-                    "descriptionText": $0.description,
-                    "content": $0.content,
-                    "url": $0.url,
-                    "title": $0.title,
-                    "lastAccess": Date()
+                    CoreDataLocalArticle.category: category,
+                    CoreDataLocalArticle.author: $0.author,
+                    CoreDataLocalArticle.sourceName: $0.source?.name,
+                    CoreDataLocalArticle.urlToImage: $0.urlToImage,
+                    CoreDataLocalArticle.descriptionText: $0.description,
+                    CoreDataLocalArticle.content: $0.content,
+                    CoreDataLocalArticle.url: $0.url,
+                    CoreDataLocalArticle.title: $0.title,
+                    CoreDataLocalArticle.publishedAt: $0.publishedAt,
+                    CoreDataLocalArticle.lastAccess: Date(),
                 ],
-                to: "LocalArticle",
+                to: CoreDataEntities.localArticle,
                 primaryKey: $0
                     .url.flatMap {
-                        PrimaryKey(key: "url", value: $0)
+                        PrimaryKey(key: CoreDataLocalArticle.url, value: $0)
                     }
             )
         })
@@ -86,11 +87,7 @@ class NewsManager {
     }
     
     func getEverything(_ params: Endpoints.News.GetEverything.Parameters, _ completion: ((FetchedEverything?) -> Void)?) -> URLSessionTask? {
-        //let urlKey = key//.hasPrefix("http") ? key : baseImageUrl.absoluteString.appending(key)
         
-        //guard let url = URL(string: urlKey) else { completion?(nil); return nil }
-        
-  
         return Current.api.news.getEverything(params) { [weak self] fetchedResult in
             if let result = fetchedResult {
                 if let category = params.q {
@@ -103,21 +100,6 @@ class NewsManager {
                 }
                 completion?(result)
             } else {
-                /*if params.page == 1 {
-                    if let category = params.category {
-                        if let result = self?.getCachedResult(forCategory: category) {
-                            completion?(result)
-                            return// nil
-                        }
-                        self?.lock.execute {
-                            if let _ = self?.requests[category] {
-                                self?.requests[category]?.append(completion)
-                            } else {
-                                self?.requests[category] = [completion]
-                            }
-                        }
-                    }
-                }*/
                 completion?(nil)
             }
         }
@@ -130,9 +112,4 @@ class NewsManager {
         }
         return result
     }
-    
-    /*func setImage(_ image: UIImage?, forKey key: String) {
-        if let image = image, let data = image.pngData() { cache.insert(data, forKey: key) }
-        else { cache.removeValue(forKey: key) }
-    }*/
 }

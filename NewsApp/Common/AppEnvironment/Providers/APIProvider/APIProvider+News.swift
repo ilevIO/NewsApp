@@ -48,7 +48,7 @@ extension APIProvider.NewsGroup {
     )
     
     static var mock = Self.init(getEverything: { params, completion in
-        //Returns each 3
+        //Returns each 5
         guard let path = Bundle.main.path(forResource: "newsmock", ofType: "json") else { return nil }
         let url = URL(fileURLWithPath: path)
         let data = try! Data(contentsOf: url)

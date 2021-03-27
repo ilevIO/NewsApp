@@ -1,11 +1,11 @@
 //
-//  ArticleCollectionViewCell.swift
+//  ArticleModel.swift
 //  NewsApp
 //
-//  Created by Ilya Yelagov on 3/24/21.
+//  Created by Ilya Yelagov on 3/28/21.
 //
 
-import UIKit
+import Foundation
 
 struct ArticleModel {
     var source: NewsSource?
@@ -17,7 +17,7 @@ struct ArticleModel {
     var publishedAt: String?
     var content: String?
     
-    init(with article: Article) {
+    init(with article: ArticleDTO) {
         self.title = article.title ?? "no_title".localizedCapitalized
         self.source = article.source
         self.author = article.author
@@ -40,7 +40,3 @@ extension ArticleModel: Equatable {
     }
 }
 
-struct ArticleCellModel {
-    var model: ArticleModel
-    var isExpanded: Bool = false
-}

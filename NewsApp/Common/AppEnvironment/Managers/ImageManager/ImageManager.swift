@@ -15,10 +15,9 @@ class ImageManager {
     var requests: [URL: [((UIImage?) -> Void)?]] = [:]
     
     func getLocalStoredImageData(forKey key: String) -> Data? {
-        if let data = Current.localStorage.load(entityName: "LocalImage", predicate: .init(format: "url == %@", key))?
+        if let data = Current.localStorage.load(entityName: CoreDataEntities.localImage, predicate: .init(format: "\(CoreDataLocalImage.url) == %@", key))?
             .first?
-            //.first(where: { ($0.value(forKey: "url") as? String) == key })?
-            .value(forKey: "imageData") as? Data {
+            .value(forKey: CoreDataLocalImage.imageData) as? Data {
             self.insertImage(data, forKey: key)
             return data
         }
@@ -28,8 +27,12 @@ class ImageManager {
     func saveImageLocally(image: UIImage, urlKey: String) {
         guard let imageData = image.pngData() else { return }
         Current.localStorage.save(
-            entityFields: ["url": urlKey, "imageData": imageData, "lastAccess": Date()],
-            to: "LocalImage"
+            entityFields: [
+                CoreDataLocalImage.url: urlKey,
+                CoreDataLocalImage.imageData: imageData,
+                CoreDataLocalImage.lastAccess: Date()
+            ],
+            to: CoreDataEntities.localImage
         )
     }
     
@@ -39,7 +42,8 @@ class ImageManager {
     }
     
     func getImage(forKey key: String, completion: ((UIImage?) -> Void)?, priority: Float = URLSessionTask.defaultPriority) -> URLSessionTask? {
-        let urlKey = key//.hasPrefix("http") ? key : baseImageUrl.absoluteString.appending(key)
+        let urlKey = key
+        
         if let image = getCachedImage(forKey: urlKey) {
             completion?(image)
             return nil
@@ -79,36 +83,12 @@ class ImageManager {
         return task
     }
     
-    func getImage(forKey key: String) -> AnyPublisher<UIImage?, Never> {
-        if let image = getCachedImage(forKey: key) {
-            return Just(image).eraseToAnyPublisher()
-        }
-        let urlKey = key//.hasPrefix("http") ? key : baseImageUrl.absoluteString.appending(key)
-        guard let url = URL(string: urlKey)
-        else { return Just(nil).eraseToAnyPublisher() }
-        
-        return URLSession.shared.dataTaskPublisher(for: url)
-            .map(\.data)
-            .map(UIImage.init)
-            .map { [weak self] in self?.insertImage($0, forKey: urlKey) }
-            .replaceError(with: nil)
-            .eraseToAnyPublisher()
-    }
-    
     @discardableResult
     private func insertImage(_ data: Data?, forKey key: String) -> Data? {
         if let data = data {
             cache.insert(data, forKey: key)
         }
         return data
-    }
-    
-    @discardableResult
-    private func insertImage(_ image: UIImage?, forKey key: String) -> UIImage? {
-        if image != nil {
-            //cache.insert(image, forKey: key)
-        }
-        return image
     }
     
     func setImage(_ image: UIImage?, forKey key: String) {

@@ -14,8 +14,8 @@
             filePath = "NewsApp/Common/AppEnvironment/Managers/NewsManager/NewsManager.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "96"
-            endingLineNumber = "96"
+            startingLineNumber = "93"
+            endingLineNumber = "93"
             landmarkName = "getEverything(_:_:)"
             landmarkType = "7">
          </BreakpointContent>
