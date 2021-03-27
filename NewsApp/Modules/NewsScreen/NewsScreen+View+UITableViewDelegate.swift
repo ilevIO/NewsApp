@@ -31,9 +31,6 @@ extension NewsScreen.View: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        if indexPath.row == 3 {
-            print("xxx")
-        }
         //contentView.subviews.first?.layoutSubviews()
         /*(cell.contentView.subviews.first as? ArticleCellView)?.labelsStackView.arrangedSubviews.forEach { $0.layoutSubviews() }
         cell.contentView.subviews.first?.setNeedsLayout()

@@ -15,8 +15,9 @@ class ImageManager {
     var requests: [URL: [((UIImage?) -> Void)?]] = [:]
     
     func getLocalStoredImageData(forKey key: String) -> Data? {
-        if let data = Current.localStorage.load(entityName: "LocalImage")?
-            .first(where: { ($0.value(forKey: "url") as? String) == key })?
+        if let data = Current.localStorage.load(entityName: "LocalImage", predicate: .init(format: "url == %@", key))?
+            .first?
+            //.first(where: { ($0.value(forKey: "url") as? String) == key })?
             .value(forKey: "imageData") as? Data {
             self.insertImage(data, forKey: key)
             return data
@@ -25,7 +26,11 @@ class ImageManager {
     }
     
     func saveImageLocally(image: UIImage, urlKey: String) {
-        //Current.localStorage.load(entityName: <#T##String#>)
+        guard let imageData = image.pngData() else { return }
+        Current.localStorage.save(
+            entityFields: ["url": urlKey, "imageData": imageData, "lastAccess": Date()],
+            to: "LocalImage"
+        )
     }
     
     func getCachedImage(forKey key: String) -> UIImage? {

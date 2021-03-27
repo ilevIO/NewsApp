@@ -9,7 +9,10 @@ import Foundation
 import CoreData
 
 class LocalStorageManager {
-    func erase(entityName: String) {
+    var coreDataArticlesLimit = 20
+    var coreDataImagesLimit = 10
+    
+    func drop(entityName: String) {
         let fetch = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
         let request = NSBatchDeleteRequest(fetchRequest: fetch)
         
@@ -18,11 +21,35 @@ class LocalStorageManager {
         let _ = try? managedContext.execute(request)
     }
     
+    func eraseToLimits(entityName: String) {
+        let managedContext = self.persistentContainer.viewContext
+        if let entities = load(entityName: entityName) {
+            var shouldDelete = false
+            switch entityName {
+            case "LocalArticle":
+                shouldDelete = entities.count >= coreDataArticlesLimit
+            case "LocalImage" :
+                shouldDelete = entities.count >= coreDataImagesLimit
+            default:
+                break
+            }
+            if shouldDelete {
+                let oldestToDelete = entities
+                    .sorted(by: { ($0.value(forKey: "lastAccess") as? Date ?? Date()) > ($1.value(forKey: "lastAccess") as? Date ?? Date()) })
+                    .dropFirst(1)
+                oldestToDelete.forEach({
+                    managedContext.delete($0)
+                })
+            }
+        }
+    }
+    
     func save(entityFields: [String: Any], to entityName: String) {
-        erase(entityName: entityName)
         
         let managedContext = self.persistentContainer.viewContext
-          
+        
+        eraseToLimits(entityName: entityName)
+        
         let entity =
           NSEntityDescription.entity(forEntityName: entityName,
                                      in: managedContext)!
@@ -41,12 +68,15 @@ class LocalStorageManager {
         }
     }
     
-    func load(entityName: String) -> [NSManagedObject]? {
+    func load(entityName: String, predicate: NSPredicate? = nil/*conditions: [String: Any] = [:]*/) -> [NSManagedObject]? {
         let managedContext = self.persistentContainer.viewContext
           
         let fetchRequest =
             NSFetchRequest<NSManagedObject>(entityName: entityName)
-          
+        if let predicate = predicate {
+            fetchRequest.predicate = predicate
+        }
+        
         do {
             return try managedContext.fetch(fetchRequest)
         } catch let error as NSError {
@@ -62,7 +92,7 @@ class LocalStorageManager {
          application to it. This property is optional since there are legitimate
          error conditions that could cause the creation of the store to fail.
         */
-        let container = NSPersistentContainer(name: "Autosave")
+        let container = NSPersistentContainer(name: "News")
         container.loadPersistentStores(completionHandler: { (storeDescription, error) in
             if let error = error as NSError? {
                 // Replace this implementation with code to handle the error appropriately.
@@ -97,5 +127,4 @@ class LocalStorageManager {
             }
         }
     }
-    
 }

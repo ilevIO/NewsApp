@@ -29,6 +29,7 @@ struct AppEnvironment {
     var api: APIProvider
     var image: ImageProvider
     var localStorage: LocalStorageManager
+    var news: NewsManager
     var root: Root.Presenter?
 }
 
@@ -37,7 +38,8 @@ extension AppEnvironment {
         AppEnvironment(
             api: .mock,
             image: .default,
-            localStorage: .init()
+            localStorage: .init(),
+            news: .init()
         )
     }
 }

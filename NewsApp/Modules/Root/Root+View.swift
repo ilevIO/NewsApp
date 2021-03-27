@@ -23,9 +23,7 @@ extension Root {
             navigationBar.isHidden = true
             self.view.backgroundColor = .white
         }
-        deinit {
-            print("xxx")
-        }
+        
         init(with presenter: Presenter) {
             self.presenter = presenter
             super.init(nibName: nil, bundle: nil)

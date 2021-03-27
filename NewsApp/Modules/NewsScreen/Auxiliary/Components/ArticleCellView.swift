@@ -8,7 +8,7 @@
 import Foundation
 import UIKit
 
-class RefreshableStackView: UIStackView {
+/*class RefreshableStackView: UIStackView {
     override var bounds: CGRect {
         didSet {
             self.arrangedSubviews.forEach({
@@ -16,7 +16,6 @@ class RefreshableStackView: UIStackView {
                 $0.bounds.size.width = self.bounds.size.width
                 ($0 as? UILabel)?.invalidateIntrinsicContentSize()
             })
-            print(bounds)
         }
     }
     
@@ -24,7 +23,7 @@ class RefreshableStackView: UIStackView {
         super.layoutSubviews()
     }
 }
-
+*/
 class ArticleCellView: UIView, SubscriberObject {
     let id = UUID().hashValue
     var subscriptionId: Int { id }
@@ -92,9 +91,6 @@ class ArticleCellView: UIView, SubscriberObject {
     }
     
     func hideExpandButton() {
-        if (articleModel?.title.contains("Apple launches")) ?? false {
-            print(descriptionLabel.frame)
-        }
         if let expandButton = self.expandButton {
             labelsStackView.removeArrangedSubview(expandButton)
             expandButton.removeFromSuperview()
@@ -110,26 +106,9 @@ class ArticleCellView: UIView, SubscriberObject {
     
     func checkAddButton() {
         if self.descriptionLabel.isTruncated {
-            if (articleModel?.title.contains("Apple wants Tim")) ?? false {
-                print(descriptionLabel.frame)
-            }
-            if (articleModel?.title.contains("Apple pulls more")) ?? false {
-                print(descriptionLabel.frame)
-            }
             addExpandButton()
         } else if !isExpanded {
-            if (articleModel?.title.contains("Apple wants Tim")) ?? false {
-                print(descriptionLabel.frame)
-            }
-            if (articleModel?.title.contains("Apple launches")) ?? false {
-                print(descriptionLabel.frame)
-            }
             hideExpandButton()
-        } else {
-            if (articleModel?.title.contains("Apple launches")) ?? false {
-                print(descriptionLabel.frame)
-            }
-            print(self.descriptionLabel.frame)
         }
         /*labelsStackView.arrangedSubviews.forEach {
             $0.sizeToFit()
@@ -140,18 +119,12 @@ class ArticleCellView: UIView, SubscriberObject {
     
     override func layoutIfNeeded() {
         super.layoutIfNeeded()
-        if (articleModel?.title.contains("Apple launches")) ?? false {
-            print(descriptionLabel.frame)
-        }
     }
     
     override func layoutSubviews() {
         super.layoutSubviews()
         //descriptionLabel.sizeToFit()
         //sourceLabel.sizeToFit()
-        if (articleModel?.title.contains("Apple launches")) ?? false {
-            print(descriptionLabel.frame)
-        }
         //descriptionLabel.invalidateIntrinsicContentSize()
         //descriptionLabel.frame.size.width = self.labelsStackView.bounds.width
         //descriptionLabel.invalidateIntrinsicContentSize()

@@ -16,6 +16,7 @@
 		D12D3FB7260E6E64006DF1BB /* ArticleHorizontalCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D12D3FB6260E6E64006DF1BB /* ArticleHorizontalCollectionViewCell.swift */; };
 		D12D3FBC260E99A6006DF1BB /* NewsScreen+View+UICollectionViewDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D12D3FBB260E99A2006DF1BB /* NewsScreen+View+UICollectionViewDelegate.swift */; };
 		D12D3FC1260E9CB1006DF1BB /* TopBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = D12D3FC0260E9CB0006DF1BB /* TopBar.swift */; };
+		D12D3FD6260F2C2E006DF1BB /* NewsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D12D3FD5260F2C2D006DF1BB /* NewsManager.swift */; };
 		D17AF1F1260B60E80050731E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17AF1F0260B60E80050731E /* AppDelegate.swift */; };
 		D17AF1F3260B60E80050731E /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17AF1F2260B60E80050731E /* SceneDelegate.swift */; };
 		D17AF1F5260B60E80050731E /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17AF1F4260B60E80050731E /* ViewController.swift */; };
@@ -107,6 +108,7 @@
 		D12D3FB6260E6E64006DF1BB /* ArticleHorizontalCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleHorizontalCollectionViewCell.swift; sourceTree = "<group>"; };
 		D12D3FBB260E99A2006DF1BB /* NewsScreen+View+UICollectionViewDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NewsScreen+View+UICollectionViewDelegate.swift"; sourceTree = "<group>"; };
 		D12D3FC0260E9CB0006DF1BB /* TopBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopBar.swift; sourceTree = "<group>"; };
+		D12D3FD5260F2C2D006DF1BB /* NewsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsManager.swift; sourceTree = "<group>"; };
 		D17AF1ED260B60E80050731E /* NewsApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NewsApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D17AF1F0260B60E80050731E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D17AF1F2260B60E80050731E /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -230,6 +232,14 @@
 				D12D3F98260E4232006DF1BB /* LocalStorageManager.swift */,
 			);
 			path = LocalStorageManager;
+			sourceTree = "<group>";
+		};
+		D12D3FD4260F2BFC006DF1BB /* NewsManager */ = {
+			isa = PBXGroup;
+			children = (
+				D12D3FD5260F2C2D006DF1BB /* NewsManager.swift */,
+			);
+			path = NewsManager;
 			sourceTree = "<group>";
 		};
 		D17AF1E4260B60E80050731E = {
@@ -412,6 +422,7 @@
 		D17AF294260B83A90050731E /* Managers */ = {
 			isa = PBXGroup;
 			children = (
+				D12D3FD4260F2BFC006DF1BB /* NewsManager */,
 				D12D3F97260E421E006DF1BB /* LocalStorageManager */,
 				D17AF378260BC61A0050731E /* ImageManager */,
 				D17AF2A9260B85AC0050731E /* CancellablesManager */,
@@ -826,6 +837,7 @@
 				D17AF397260BCF910050731E /* NewsScreen+View+UICollectionViewFlowDelegate.swift in Sources */,
 				D12D3F99260E4232006DF1BB /* LocalStorageManager.swift in Sources */,
 				D17AF27B260B73510050731E /* GetNewsSortMethod.swift in Sources */,
+				D12D3FD6260F2C2E006DF1BB /* NewsManager.swift in Sources */,
 				D17AF28F260B81560050731E /* APIManager+Error.swift in Sources */,
 				D17AF251260B6AD50050731E /* APIRequest.swift in Sources */,
 				D17AF263260B6C920050731E /* NewsSource.swift in Sources */,
@@ -1022,7 +1034,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = BL474C2QCB;
+				DEVELOPMENT_TEAM = 7Y79CZPY35;
 				INFOPLIST_FILE = NewsApp/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1043,7 +1055,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = BL474C2QCB;
+				DEVELOPMENT_TEAM = 7Y79CZPY35;
 				INFOPLIST_FILE = NewsApp/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
