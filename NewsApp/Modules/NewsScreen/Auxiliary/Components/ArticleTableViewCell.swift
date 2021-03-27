@@ -57,7 +57,7 @@ extension LabelStyle {
     )
     static let articleTime: LabelStyle = .init(
         font: .systemFont(ofSize: 12, weight: .light),
-        textColor: .lightText
+        textColor: .systemGray4
     )
     static let expandButton: LabelStyle = .init(
         font: .systemFont(ofSize: 14, weight: .semibold),

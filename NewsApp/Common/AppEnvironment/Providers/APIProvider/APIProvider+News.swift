@@ -40,7 +40,7 @@ extension APIProvider.NewsGroup {
                 if let result = result {
                     completion?(FetchedEverything(with: result))
                 } else {
-                    //show error
+                    print((error as? APIError)?.message)
                     completion?(nil)
                 }
             }

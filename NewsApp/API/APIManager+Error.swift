@@ -9,7 +9,7 @@ import Foundation
 
 public struct APIError: Decodable, Error {
     public var timestamp: String?
-    public var status: Int
+    public var status: String
     public var message: String?
     public var type: String?
 }
@@ -32,7 +32,7 @@ public extension APIManager {
                     failCompletion?(nil, response, error)
                     return error
                 } else {
-                    let error = APIError(timestamp: nil, status: response.statusCode, message: response.description, type: response.mimeType)
+                    let error = APIError(timestamp: nil, status: "\(response.statusCode)", message: response.description, type: response.mimeType)
                     failCompletion?(nil, response, error)
                     return error
                 }
@@ -41,7 +41,7 @@ public extension APIManager {
             if let data = data, !data.isEmpty, let error = dataContainingError(data: data) {
                 return error
             } else if let error = error as? URLError {
-                return APIError(timestamp: nil, status: error.errorCode, message: error.localizedDescription, type: error.failingURL?.lastPathComponent)
+                return APIError(timestamp: nil, status: "\(error.errorCode)", message: error.localizedDescription, type: error.failingURL?.lastPathComponent)
             }
         }
         return nil

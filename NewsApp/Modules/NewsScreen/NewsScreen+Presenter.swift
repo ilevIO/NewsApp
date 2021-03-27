@@ -108,12 +108,19 @@ extension NewsScreen {
                 guard let self = self, currentPeriod == self.currentPeriod[category] else { return }
                 
                 self.newsLoader.loadNext(
-                    query: self.query.isEmpty ? nil : self.query,
+                    query: self.query.isEmpty ? category : self.query,
                     currentLoaded: self.news[category]?.articles.count ?? 0,
                     for: currentPeriod,
-                    category: category
+                    category: nil
                 ) { [weak self] news in
-                    guard let self = self, let news = news else { return }
+                    guard let self = self else { return }
+                    guard let news = news else {
+                        //Show error message
+                        DispatchQueue.main.async {
+                            self.view?.update(with: [], for: category, forced: false)
+                        }
+                        return
+                    }
                     let newArticles = news.articles.filter { fetchedArticle in
                         !self.news[category]!.articles.contains {
                             fetchedArticle.url == $0.model.url
@@ -123,13 +130,10 @@ extension NewsScreen {
                     if !newArticles.isEmpty {
                         self.currentPeriod[category] = Calendar.current.date(byAdding: .day, value: -1, to: currentPeriod.lowerBound)!...Calendar.current.date(byAdding: .day, value: -1, to: currentPeriod.upperBound)!
                         self.news[category]?.articles.append(contentsOf: newArticles.compactMap {  ArticleCellModel(model: ArticleModel(with: $0), isExpanded: false) })
-                        DispatchQueue.main.async {
-                            UIView.animate(withDuration: 0.3) {
-                                self.view?.update(with: self.news[category]!.articles, for: category, forced: false)
-                            }
-                        }
                     }
-                    
+                    DispatchQueue.main.async {
+                        self.view?.update(with: self.news[category]!.articles, for: category, forced: false)
+                    }
                 }
             }
         }

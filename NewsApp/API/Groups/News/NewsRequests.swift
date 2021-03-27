@@ -19,7 +19,7 @@ extension APIManager {
                     let response = try! JSONDecoder().decode(Endpoints.News.GetEverything.Response.self, from: data)
                     completion?(response, error)
                 } else {
-                    completion?(nil, error ?? APIError(timestamp: nil, status: 0, message: "No data", type: nil))
+                    completion?(nil, error ?? APIError(timestamp: nil, status: "0", message: "No data", type: nil))
                 }
             }
         }

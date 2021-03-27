@@ -23,9 +23,7 @@ public extension Endpoints.News {
 
 public extension Endpoints.News.GetEverything {
     struct Parameters: Codable {
-        ///Keywords or phrases to search for in the article title and body.
         public var q: String? = nil
-        ///Keywords or phrases to search for in the article title only.
         public var qInTitle: String? = nil
         public var sources: [String]? = nil
         public var domains: [String]? = nil

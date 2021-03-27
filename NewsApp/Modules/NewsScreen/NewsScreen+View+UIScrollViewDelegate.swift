@@ -18,8 +18,10 @@ extension NewsScreen.View {
 
 extension NewsScreen.View {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        guard scrollView !== mainCollectionView else { return }
-        if !scrollState.lockScroll && _viewDidAppear && false {
+        guard scrollView !== mainCollectionView else {
+            return
+        }
+        if !scrollState.lockScroll && _viewDidAppear {
             let contentOffset = scrollView.contentOffset.y
     
             let deltaToShowBar: CGFloat = 0
@@ -74,18 +76,19 @@ extension NewsScreen.View {
                         }
                     }
                 }
-                searchBar.alpha = topBarTopConstraint.constant / Self.topBarHeight
+                topBar.contentView.alpha = topBarTopConstraint.constant / Self.topBarHeight
                 topBar.dropShadow(opacity: 0.2 * Float(1 - topBarTopConstraint.constant / Self.topBarHeight), radius: 20)
                 scrollState.prevScrollOffset = scrollView.contentOffset.y
             }
         }
+        
         if (scrollView.contentOffset.y + 1) >= (scrollView.contentSize.height - scrollView.frame.size.height) {
             
             presenter.scrollDidReachBounds(withOffset: scrollView.contentOffset.y - scrollView.frame.minY, in: hashTable[scrollView.tag]!)
         }
     }
     
-    /*func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         scrollState.scrollingDirection = 0
         scrollState.prevScrollOffset = scrollView.contentOffset.y
         scrollState.currentDirectionBeginScrollOffset = scrollState.prevScrollOffset
@@ -94,12 +97,14 @@ extension NewsScreen.View {
             topBarTopConstraint.constant = Self.topBarHeight//0
             
             topBar.clearShadow()
+            topBar.contentView.alpha = 1
             UIView.animate(withDuration: 0.3) {
                 //self.view.layoutIfNeeded()
                 //self.view.setNeedsDisplay()
             }
         } else {
             topBarTopConstraint.constant = 0//-Self.topBarHeight
+            topBar.contentView.alpha = 0
             UIView.animate(withDuration: 0.3) {
                 self.topBar.dropShadow(opacity: 0.2, radius: 20)
                 //self.view.layoutIfNeeded()
@@ -119,7 +124,7 @@ extension NewsScreen.View {
         scrollState.prevScrollOffset = scrollView.contentOffset.y
         scrollState.currentDirectionBeginScrollOffset = scrollState.prevScrollOffset
         scrollState.lockScroll = false
-    }*/
+    }
     
     func scrollViewShouldScrollToTop(_ scrollView: UIScrollView) -> Bool {
         return true
