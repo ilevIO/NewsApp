@@ -48,11 +48,13 @@ extension APIProvider.NewsGroup {
     )
     
     static var mock = Self.init(getEverything: { params, completion in
+        //Returns each 3
         guard let path = Bundle.main.path(forResource: "newsmock", ofType: "json") else { return nil }
         let url = URL(fileURLWithPath: path)
         let data = try! Data(contentsOf: url)
         
         var result = try! JSONDecoder().decode(Endpoints.News.GetEverything.Response.self, from: data)
+        
         let page = params.page ?? (Int(params.to!.distance(to: Date())) / (24 * 60 * 60) + 1)
         let pageSize = params.pageSize ?? 3
         result.articles = result.articles?

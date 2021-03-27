@@ -24,7 +24,8 @@ struct ArticleModel {
         self.description = article.description
         self.url = article.url
         self.urlToImage = article.urlToImage
-        if let publishedAt = article.publishedAt, let date = DateFormatter().date(from: publishedAt) {
+        let formatter = ISO8601DateFormatter()// DateFormatter()
+        if let publishedAt = article.publishedAt, let date = formatter.date(from: publishedAt) {
             let formatter = DateFormatter()
             formatter.dateFormat = "MMMM dd, YYYY"
             self.publishedAt = formatter.string(from: date)

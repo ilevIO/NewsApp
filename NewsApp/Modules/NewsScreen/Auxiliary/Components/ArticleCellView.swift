@@ -37,6 +37,7 @@ class ArticleCellView: UIView, SubscriberObject {
     var descriptionLabel: UILabel = .init(frame: .zero)
     
     var labelsStackView = UIStackView()
+    var headerStackView = UIStackView()
     
     var toggleExpanded: (() -> Void)?
     var isExpanded: Bool = false {
@@ -49,7 +50,7 @@ class ArticleCellView: UIView, SubscriberObject {
     var expandButtonAdded: Bool { expandButton != nil }
     
     func onExpandToggle() {
-        expandButton?.setTitle(isExpanded ? "Collapse" : "Expand", for: .normal)
+        expandButton?.setAttributedTitle(.init(string: isExpanded ? "Collapse" : "Expand", attributes: [.foregroundColor: LabelStyle.expandButton.textColor, .font: LabelStyle.expandButton.font]), for: .normal)
         descriptionLabel.numberOfLines = isExpanded ? 0 : 3
     }
     
@@ -71,10 +72,10 @@ class ArticleCellView: UIView, SubscriberObject {
             
             let expandButton = UIButton()
             self.expandButton = expandButton
-            expandButton.setTitleColor(.systemBlue, for: .normal)
             //expandButton.isUserInteractionEnabled = true
             expandButton.addTarget(self, action: #selector(expandButtonTapped(_:)), for: .touchUpInside)
-            
+            expandButton.contentHorizontalAlignment = .leading
+            //expandButton.titleLabel?.font = LabelStyle.expandButton.font
             /*let descriptionTapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(descriptionTapped(_:)))
             descriptionTapGestureRecognizer.cancelsTouchesInView = true
             expandButton.addGestureRecognizer(descriptionTapGestureRecognizer)*/
@@ -177,17 +178,19 @@ class ArticleCellView: UIView, SubscriberObject {
         //sourceLabel.frame.size.height = 1000
         //descriptionLabel.frame.size.height = 1000
         //titleLabel.frame.size.height = 1000
+        labelsStackView.addArrangedSubview(headerStackView)
         var arrangedSubviews = [UIView]()
         if let sourceName = articleModel.source?.name {
             sourceLabel.text = sourceName
             //sourceLabel.textColor = .black
             //verticalStackView.addArrangedSubview(sourceLabel)
-            arrangedSubviews.append(sourceLabel)
+            //arrangedSubviews.append(sourceLabel)
+            headerStackView.addArrangedSubview(sourceLabel)
         }
         if let time = articleModel.publishedAt {
             timeLabel.text = time
-            arrangedSubviews.append(timeLabel)
-            //verticalStackView.addArrangedSubview(timeLabel)
+            //arrangedSubviews.append(timeLabel)
+            headerStackView.addArrangedSubview(timeLabel)
         }
         //titleLabel.preferredMaxLayoutWidth = labelsStackView.bounds.width
         titleLabel.text = articleModel.title
@@ -271,22 +274,26 @@ class ArticleCellView: UIView, SubscriberObject {
     private func buildHierarchy() {
         addSubview(labelsStackView)
         addSubview(previewImageView)
-        labelsStackView.addArrangedSubview(sourceLabel)
-        labelsStackView.addArrangedSubview(titleLabel)
-        labelsStackView.addArrangedSubview(descriptionLabel)
+        //labelsStackView.addArrangedSubview(sourceLabel)
+        //labelsStackView.addArrangedSubview(titleLabel)
+        //labelsStackView.addArrangedSubview(descriptionLabel)
     }
     
     private func configureSubviews() {
         labelsStackView.axis = .vertical
         
-        labelsStackView.alignment = .leading
+        //labelsStackView.alignment = .leading
         labelsStackView.distribution = .fillProportionally
         labelsStackView.spacing = 2
+        
+        headerStackView.axis = .horizontal
+        headerStackView.distribution = .equalSpacing
         
         titleLabel.numberOfLines = 3
         descriptionLabel.numberOfLines = 3
         descriptionLabel.applyStyle(.articleDescription)
         titleLabel.applyStyle(.articleTitle)
+        timeLabel.applyStyle(.articleTime)
         
         previewImageView.layer.cornerRadius = 8
     }

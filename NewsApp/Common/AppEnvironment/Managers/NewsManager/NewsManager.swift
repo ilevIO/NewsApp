@@ -79,19 +79,7 @@ class NewsManager {
     
     func getEverything(_ params: Endpoints.News.GetEverything.Parameters, _ completion: ((FetchedEverything?) -> Void)?) -> URLSessionTask? {
         //let urlKey = key//.hasPrefix("http") ? key : baseImageUrl.absoluteString.appending(key)
-        if let category = params.category {
-            if let result = getCachedResult(forCategory: category) {
-                completion?(result)
-                return nil
-            }
-            self.lock.execute {
-                if let _ = requests[category] {
-                    requests[category]?.append(completion)
-                } else {
-                    requests[category] = [completion]
-                }
-            }
-        }
+        
         //guard let url = URL(string: urlKey) else { completion?(nil); return nil }
         
   
@@ -107,6 +95,21 @@ class NewsManager {
                 }
                 completion?(result)
             } else {
+                if params.page == 1 {
+                    if let category = params.category {
+                        if let result = self?.getCachedResult(forCategory: category) {
+                            completion?(result)
+                            return// nil
+                        }
+                        self?.lock.execute {
+                            if let _ = self?.requests[category] {
+                                self?.requests[category]?.append(completion)
+                            } else {
+                                self?.requests[category] = [completion]
+                            }
+                        }
+                    }
+                }
                 completion?(nil)
             }
         }

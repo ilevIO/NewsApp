@@ -70,7 +70,13 @@ extension NewsScreen.View: UICollectionViewDelegate, UICollectionViewDataSource 
         let news = newsSections[hashTable[collectionView.tag]!]?.articles ?? []
         cell.configure(with: news[indexPath.row])
         cell.articleView.toggleExpanded = { [weak collectionView] in
-            collectionView?.collectionViewLayout.invalidateLayout()
+            guard let collectionView = collectionView else { return }
+            DispatchQueue.main.async {
+                UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseInOut) {
+                    collectionView.collectionViewLayout.invalidateLayout()
+                    collectionView.layoutIfNeeded()
+                }
+            }
         }
         return cell
     }

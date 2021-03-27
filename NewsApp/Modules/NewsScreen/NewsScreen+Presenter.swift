@@ -25,7 +25,7 @@ class NewsLoader: SubscriberObject {
         if currentLoaded == 0 {
             checkLocalStorage()
         }
-        Current.api.news.getEverything(.init(q: query, from: timePeriod.lowerBound, to: timePeriod.upperBound, category: category)) { news in
+        Current.news.getEverything(.init(q: category ?? query, from: timePeriod.lowerBound, to: timePeriod.upperBound, category: nil)) { news in
             if let news = news {
                 
             }

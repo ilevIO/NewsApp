@@ -55,6 +55,14 @@ extension LabelStyle {
         font: .systemFont(ofSize: 12),
         textColor: .gray
     )
+    static let articleTime: LabelStyle = .init(
+        font: .systemFont(ofSize: 12, weight: .light),
+        textColor: .lightText
+    )
+    static let expandButton: LabelStyle = .init(
+        font: .systemFont(ofSize: 14, weight: .semibold),
+        textColor: .systemBlue
+    )
 }
 
 extension UILabel {

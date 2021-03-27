@@ -266,6 +266,7 @@ extension NewsScreen {
                     let layout = self.inferNewsCollectionViewLayout(with: size)
                     $0.value?.collectionViewLayout = layout
                     $0.value?.collectionViewLayout.invalidateLayout()
+                    $0.value?.layoutIfNeeded()
                 }
                 //self.newsCollectionView.collectionViewLayout = layout
                 
@@ -319,6 +320,7 @@ extension NewsScreen.View: NewsScreenView {
                 DispatchQueue.main.async {
                     newsCollectionView.insertItems(at: (currentNumber..<currentNumber + toInsert).map({ IndexPath(item: $0, section: 0) }))
                     newsCollectionView.collectionViewLayout.invalidateLayout()
+                    newsCollectionView.layoutIfNeeded()
                 }
                 //}
                 //newsTableView.endUpdates()

@@ -14,7 +14,7 @@
     <entity name="LocalCategoryResult" representedClassName="LocalCategoryResult" syncable="YES" codeGenerationType="class">
         <attribute name="articleUrls" optional="YES" attributeType="String"/>
         <attribute name="category" optional="YES" attributeType="String"/>
-        <attribute name="lastAccess" optional="YES" attributeType="String"/>
+        <attribute name="lastAccess" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
     <entity name="LocalImage" representedClassName="LocalImage" syncable="YES" codeGenerationType="class">
         <attribute name="imageData" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
