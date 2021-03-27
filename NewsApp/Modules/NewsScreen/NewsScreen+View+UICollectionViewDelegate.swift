@@ -9,18 +9,24 @@ import Foundation
 import UIKit
 
 extension NewsScreen.View: UICollectionViewDelegate, UICollectionViewDataSource {
-    func createCollectionView() -> UICollectionView {
+    func inferNewsCollectionViewLayout(with size: CGSize) -> UICollectionViewLayout {
+        let numberOfItemsInRow = size.height > size.width ? 1 : 2
         let size = NSCollectionLayoutSize(
             widthDimension: NSCollectionLayoutDimension.fractionalWidth(1),
             heightDimension: NSCollectionLayoutDimension.estimated(200)
         )
         let item = NSCollectionLayoutItem(layoutSize: size)
-        let group = NSCollectionLayoutGroup.horizontal(layoutSize: size, subitem: item, count: 1)
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: size, subitem: item, count: numberOfItemsInRow)
         group.interItemSpacing = .fixed(12)
         let section = NSCollectionLayoutSection(group: group)
-        section.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 16, bottom: 8, trailing: 16)
+        section.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 16, bottom: 0, trailing: 16)
         section.interGroupSpacing = 18
         let layout = UICollectionViewCompositionalLayout(section: section)
+        return layout
+    }
+    
+    func createCollectionView(for newsSection: String) -> UICollectionView {
+        let layout = inferNewsCollectionViewLayout(with: view.bounds.size)
         /*let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical*/
         //layout.estimatedItemSize = .init(width: 180, height: 600)
@@ -32,25 +38,32 @@ extension NewsScreen.View: UICollectionViewDelegate, UICollectionViewDataSource 
         collectionView.register(HorizontalArticleCollectionViewCell.self, forCellWithReuseIdentifier: "NewsCell")
         collectionView.backgroundColor = .clear
         collectionView.alwaysBounceVertical = true
-        newsCollectionView = collectionView
+        self.sectionsCollectionViews[newsSection] = Weak(value: collectionView)
+        //newsCollectionView = collectionView
+        let refresher = UIRefreshControl()
+        refresher.tag = newsSection.hash
+        collectionView.addSubview(refresher)
+        collectionView.tag = newsSection.hash
+        hashTable[newsSection.hash] = newsSection
         return collectionView
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         if collectionView === mainCollectionView {
-            return 5
+            return sections.count
         }
-        return news.count
+        return newsSections[hashTable[collectionView.tag]!]?.articles.count ?? 0
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         if collectionView === mainCollectionView {
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "NewsCell", for: indexPath)
             cell.contentView.subviews.forEach({ $0.removeAllConstraints(); $0.removeFromSuperview() })
-            cell.contentView.fill(with: createCollectionView())
+            cell.contentView.fill(with: createCollectionView(for: sections[indexPath.row]))
             return cell
         }
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "NewsCell", for: indexPath) as! HorizontalArticleCollectionViewCell
+        let news = newsSections[hashTable[collectionView.tag]!]?.articles ?? []
         cell.configure(with: news[indexPath.row])
         cell.articleView.toggleExpanded = { [weak collectionView] in
             collectionView?.collectionViewLayout.invalidateLayout()
@@ -59,7 +72,7 @@ extension NewsScreen.View: UICollectionViewDelegate, UICollectionViewDataSource 
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        presenter.newsCellTapped(at: indexPath)
+        presenter.newsCellTapped(at: indexPath, in: hashTable[collectionView.tag]!)
     }
     
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {

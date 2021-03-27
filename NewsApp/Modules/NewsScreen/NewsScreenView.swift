@@ -8,5 +8,5 @@
 import Foundation
 
 protocol NewsScreenView: class {
-    func update(with news: [ArticleCellModel], forced: Bool)
+    func update(with news: [ArticleCellModel], for section: String, forced: Bool)
 }

@@ -9,16 +9,16 @@ import UIKit
 
 extension NewsScreen.View: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        news.count
+        0//news.count
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        presenter.newsCellTapped(at: indexPath)
+        //presenter.newsCellTapped(at: indexPath)
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "NewsCell") as! ArticleTableViewCell
-        cell.selectionStyle = .none
+        /*cell.selectionStyle = .none
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             cell.configure(with: self.news[indexPath.row])
         }
@@ -26,7 +26,7 @@ extension NewsScreen.View: UITableViewDelegate, UITableViewDataSource {
             self?.presenter.news[indexPath.row].isExpanded.toggle()
             tableView.beginUpdates()
             tableView.endUpdates()
-        }
+        }*/
         return cell
     }
     

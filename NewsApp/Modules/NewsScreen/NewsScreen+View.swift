@@ -13,6 +13,11 @@ extension NewsScreen {
         View(with: presenter)
     }
     
+    struct NewsSectionModel {
+        var name: String
+        var articles: [ArticleCellModel]
+    }
+
     class View: UIViewController {
         static let topBarHeight: CGFloat = 60
         
@@ -23,7 +28,8 @@ extension NewsScreen {
         var prevTopBarVisibleHeight: CGFloat = 0
         
         var isReloadingData = false
-        var news: [ArticleCellModel] { presenter.news }
+        //var news: [ArticleCellModel] { presenter.news }
+        var newsSections: [String: NewsSectionModel] { presenter.news }
         //MARK: - Subviews
         var newsCollectionView: UICollectionView!
         var newsTableView: UITableView = .init()
@@ -37,7 +43,7 @@ extension NewsScreen {
         
         let searchButton = UIButton()
         //MARK: - Setup
-        
+        var hashTable: [Int: String] = [:]
         var mainCollectionView: UICollectionView!
         
         private func setupMainCollectionView() {
@@ -91,12 +97,13 @@ extension NewsScreen {
         }
         
         @objc func refreshPulled(_ sender: UIRefreshControl) {
-            presenter.refresh()
+            presenter.refresh(for: "Apple")
         }
         
         private func buildHierarchy() {
             if usesCollectionView {
                 view.addSubview(mainCollectionView)
+                mainCollectionView.addSubview(refreshControl)
                 //view.addSubview(newsCollectionView)
                 //newsCollectionView.addSubview(refreshControl)
             } else {
@@ -244,36 +251,41 @@ extension NewsScreen {
             
             setup()
             
-            presenter.fetchNews()
+            presenter.fetchNews(for: "Apple")
         }
+        
+        var sections = ["Apple", "IT", "Belarus", "Cocoa", "iOS"]
+        
+        struct Weak<T: AnyObject> {
+            weak var value: T?
+        }
+        
+        var sectionsCollectionViews: [String: Weak<UICollectionView>] = [:]
         
         override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
             super.viewWillTransition(to: size, with: coordinator)
             coordinator.animate(alongsideTransition: { context in
-                let numberOfItemsInRow = size.height > size.width ? 1 : 2
-                let size = NSCollectionLayoutSize(
-                    widthDimension: NSCollectionLayoutDimension.fractionalWidth(1),
-                    heightDimension: NSCollectionLayoutDimension.estimated(200)
-                )
-                let item = NSCollectionLayoutItem(layoutSize: size)
-                let group = NSCollectionLayoutGroup.horizontal(layoutSize: size, subitem: item, count: numberOfItemsInRow)
-                group.interItemSpacing = .fixed(12)
-                let section = NSCollectionLayoutSection(group: group)
-                section.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 16, bottom: 0, trailing: 16)
-                section.interGroupSpacing = 18
-                let layout = UICollectionViewCompositionalLayout(section: section)
-                self.newsCollectionView.collectionViewLayout = layout
-                //self.newsTableView.layoutIfNeeded()
-                //DispatchQueue.main.async {
-                self.newsCollectionView.collectionViewLayout.invalidateLayout()
-                    
-                //}
+                
+                self.sectionsCollectionViews.values.forEach {
+                    let layout = self.inferNewsCollectionViewLayout(with: size)
+                    $0.value?.collectionViewLayout = layout
+                    $0.value?.collectionViewLayout.invalidateLayout()
+                }
+                //self.newsCollectionView.collectionViewLayout = layout
+                
+                //self.newsCollectionView.collectionViewLayout.invalidateLayout()
+                
                 
             }, completion: { context in
                 if self.usesCollectionView {
-                    self.newsCollectionView.visibleCells.forEach {
-                        $0.isBeingPresented()
+                    self.sectionsCollectionViews.values.forEach {
+                        $0.value?.visibleCells.forEach {
+                            $0.isBeingPresented()
+                        }
                     }
+                    /*self.newsCollectionView.visibleCells.forEach {
+                        $0.isBeingPresented()
+                    }*/
                 } else {
                     self.newsTableView.visibleCells.forEach({ $0.layoutSubviews() })
                 }
@@ -295,20 +307,21 @@ extension NewsScreen {
 }
 
 extension NewsScreen.View: NewsScreenView {
-    func update(with news: [ArticleCellModel], forced: Bool) {
+    func update(with news: [ArticleCellModel], for section: String, forced: Bool) {
         //self.news = news
         refreshControl.endRefreshing()
         if !forced {
             if usesCollectionView {
-                guard newsCollectionView != nil else { return }
-                let currentNumber = self.newsCollectionView.numberOfItems(inSection: 0)
+                guard let newsCollectionView = self.sectionsCollectionViews[section]?.value else { return }
+                let currentNumber = newsCollectionView.numberOfItems(inSection: 0)
                 let toInsert = news.count - currentNumber
                 guard toInsert > 0 else { return }
                 //UIView.animate(withDuration: 0.3) {
                 //newsTableView.beginUpdates()
+                
                 DispatchQueue.main.async {
-                    self.newsCollectionView.insertItems(at: (currentNumber..<currentNumber + toInsert).map({ IndexPath(item: $0, section: 0) }))
-                    self.newsCollectionView.collectionViewLayout.invalidateLayout()
+                    newsCollectionView.insertItems(at: (currentNumber..<currentNumber + toInsert).map({ IndexPath(item: $0, section: 0) }))
+                    newsCollectionView.collectionViewLayout.invalidateLayout()
                 }
                 //}
                 //newsTableView.endUpdates()
@@ -325,7 +338,8 @@ extension NewsScreen.View: NewsScreenView {
         } else {
             //UIView.animate(withDuration: 0.3) {
             if usesCollectionView {
-                self.newsCollectionView.reloadData()
+                guard let newsCollectionView = self.sectionsCollectionViews[section]?.value else { return }
+                newsCollectionView.reloadData()
             } else {
                 self.newsTableView.reloadData()
             }

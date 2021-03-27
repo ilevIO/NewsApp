@@ -18,6 +18,7 @@ extension NewsScreen.View {
 
 extension NewsScreen.View {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard scrollView !== mainCollectionView else { return }
         if !scrollState.lockScroll && _viewDidAppear && false {
             let contentOffset = scrollView.contentOffset.y
     
@@ -80,7 +81,7 @@ extension NewsScreen.View {
         }
         if (scrollView.contentOffset.y + 1) >= (scrollView.contentSize.height - scrollView.frame.size.height) {
             
-            presenter.scrollDidReachBounds(withOffset: scrollView.contentOffset.y - scrollView.frame.minY)
+            presenter.scrollDidReachBounds(withOffset: scrollView.contentOffset.y - scrollView.frame.minY, in: hashTable[scrollView.tag]!)
         }
     }
     

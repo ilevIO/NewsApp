@@ -21,11 +21,11 @@ class NewsLoader: SubscriberObject {
          //core data save object
     }
     
-    func loadNext(query: String? = nil, currentLoaded: Int, for timePeriod: ClosedRange<Date>, completion: ((FetchedEverything?) -> Void)?) {
+    func loadNext(query: String? = nil, currentLoaded: Int, for timePeriod: ClosedRange<Date>, category: String? = nil, completion: ((FetchedEverything?) -> Void)?) {
         if currentLoaded == 0 {
             checkLocalStorage()
         }
-        Current.api.news.getEverything(.init(q: query, from: timePeriod.lowerBound, to: timePeriod.upperBound)) { news in
+        Current.api.news.getEverything(.init(q: query, from: timePeriod.lowerBound, to: timePeriod.upperBound, category: category)) { news in
             if let news = news {
                 
             }
@@ -39,7 +39,7 @@ extension NewsScreen {
         weak var view: NewsScreenView?
         
         private(set) var subscriptionId = UUID().hashValue
-        var news: [ArticleCellModel] = []
+        var news: [String: NewsSectionModel] = [:]
         
         var newsLoader = NewsLoader()
         
@@ -50,16 +50,22 @@ extension NewsScreen {
         var query = ""
         var lastQueryTask: Cancellable?
         
-        func refresh() {
+        func refresh(for category: String) {
             currentPeriod = Calendar.current.date(byAdding: .day, value: -1, to: Date())!...Date()
-            news = []
+            news[category] = .init(name: category, articles: [])
             //self.currentPeriod = Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.lowerBound)!...Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.upperBound)!
             newsLoader.loadNext(query: query.isEmpty ? nil : query, currentLoaded: 0, for: currentPeriod) { [weak self] news in
                 guard let self = self, let news = news else { return }
                 
                 if !news.articles.isEmpty {
                     self.currentPeriod = Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.lowerBound)!...Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.upperBound)!
-                    self.news.append(
+                    /*self.news.append(
+                        contentsOf:
+                            news.articles.compactMap {
+                                ArticleCellModel(model: ArticleModel(with: $0), isExpanded: false)
+                            }
+                    )*/
+                    self.news[category]?.articles.append(
                         contentsOf:
                             news.articles.compactMap {
                                 ArticleCellModel(model: ArticleModel(with: $0), isExpanded: false)
@@ -68,7 +74,7 @@ extension NewsScreen {
                 }
                 DispatchQueue.main.async {
                     UIView.animate(withDuration: 0.3) {
-                        self.view?.update(with: self.news, forced: true)
+                        self.view?.update(with: self.news[category]?.articles ?? [], for: category, forced: true)
                     }
                 }
             }
@@ -78,12 +84,12 @@ extension NewsScreen {
             lastQueryTask?.cancel()
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                 self.query = query
-                self.refresh()
+                self.refresh(for: "")
             }
         }
         
-        func newsCellTapped(at index: IndexPath) {
-            guard let _url = news[index.item].model.url, let url = URL(string: _url) else { return }
+        func newsCellTapped(at index: IndexPath, in category: String) {
+            guard let _url = news[category]?.articles[index.item].model.url, let url = URL(string: _url) else { return }
             let webView = WKWebView()
             let vc = UIViewController()
             vc.view.fill(with: webView)
@@ -91,23 +97,30 @@ extension NewsScreen {
             Current.root?.rootView.navigationController?.pushViewController(vc, animated: true)
         }
         
-        func loadNext() {
+        func loadNext(category: String) {
             let currentPeriod = self.currentPeriod
+            self.news[category] = self.news[category] ?? .init(name: category, articles: [])
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
                 guard let self = self, currentPeriod == self.currentPeriod else { return }
-                self.newsLoader.loadNext(query: self.query.isEmpty ? nil : self.query, currentLoaded: self.news.count, for: self.currentPeriod) { [weak self] news in
+                
+                self.newsLoader.loadNext(
+                    query: self.query.isEmpty ? nil : self.query,
+                    currentLoaded: self.news.count,
+                    for: self.currentPeriod,
+                    category: category
+                ) { [weak self] news in
                     guard let self = self, let news = news else { return }
                     let newArticles = news.articles.filter { fetchedArticle in
-                        !self.news.contains {
+                        !self.news[category]!.articles.contains {
                             fetchedArticle.url == $0.model.url
                         }
                     }
                     if !news.articles.isEmpty {
                         self.currentPeriod = Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.lowerBound)!...Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.upperBound)!
-                        self.news.append(contentsOf: newArticles.compactMap {  ArticleCellModel(model: ArticleModel(with: $0), isExpanded: false) })
+                        self.news[category]?.articles.append(contentsOf: newArticles.compactMap {  ArticleCellModel(model: ArticleModel(with: $0), isExpanded: false) })
                         DispatchQueue.main.async {
                             UIView.animate(withDuration: 0.3) {
-                                self.view?.update(with: self.news, forced: false)
+                                self.view?.update(with: self.news[category]!.articles, for: category, forced: false)
                             }
                         }
                     }
@@ -120,12 +133,12 @@ extension NewsScreen {
             
         }
         
-        func scrollDidReachBounds(withOffset offset: CGFloat) {
-            loadNext()
+        func scrollDidReachBounds(withOffset offset: CGFloat, in category: String) {
+            loadNext(category: category)
         }
         
-        func fetchNews() {
-            scrollDidReachBounds(withOffset: 0)
+        func fetchNews(for category: String) {
+            scrollDidReachBounds(withOffset: 0, in: category)
             /*let sevenDaysBack = Calendar.current.date(byAdding: .day, value: -7, to: .init())!
             Current.api.news.getEverything(
                 .init(
