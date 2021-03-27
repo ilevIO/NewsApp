@@ -36,7 +36,7 @@ struct AppEnvironment {
 extension AppEnvironment {
     static var `default`: Self {
         AppEnvironment(
-            api: .default,
+            api: .mock,
             image: .default,
             localStorage: .init(),
             news: .init()

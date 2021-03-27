@@ -10,7 +10,8 @@ import UIKit
 
 extension NewsScreen.View: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDataSourcePrefetching {
     func collectionView(_ collectionView: UICollectionView, prefetchItemsAt indexPaths: [IndexPath]) {
-        presenter.scrollDidReachBounds(in: hashTable[collectionView.tag]!)
+        withTagToSection(tag: collectionView.tag, action: presenter.scrollDidReachBounds)
+        
         //presenter.loadNext(category: hashTable[collectionView.tag]!)
     }
     
@@ -19,7 +20,14 @@ extension NewsScreen.View: UICollectionViewDelegate, UICollectionViewDataSource,
         if collectionView === mainCollectionView {
             return sections.count
         }
-        return newsSections[hashTable[collectionView.tag]!]?.articles.count ?? 0
+        
+        var articleCount = 0
+        
+        withTagToSection(tag: collectionView.tag) { section in
+            articleCount = newsSections[section]?.articles.count ?? 0
+        }
+        
+        return articleCount
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -30,8 +38,12 @@ extension NewsScreen.View: UICollectionViewDelegate, UICollectionViewDataSource,
             return cell
         }
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "NewsCell", for: indexPath) as! HorizontalArticleCollectionViewCell
-        let news = newsSections[hashTable[collectionView.tag]!]?.articles ?? []
-        cell.configure(with: news[indexPath.row])
+        withTagToSection(tag: collectionView.tag) { section in
+            if let news = newsSections[section]?.articles {
+                cell.configure(with: news[indexPath.row])
+            }
+        }
+        
         cell.articleView.toggleExpanded = { [weak collectionView] in
             guard let collectionView = collectionView else { return }
             DispatchQueue.main.async {
@@ -45,7 +57,9 @@ extension NewsScreen.View: UICollectionViewDelegate, UICollectionViewDataSource,
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        presenter.newsCellTapped(at: indexPath, in: hashTable[collectionView.tag]!)
+        withTagToSection(tag: collectionView.tag) { section in
+            presenter.newsCellTapped(at: indexPath, in: section)
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
@@ -83,25 +97,31 @@ extension NewsScreen.View {
     func createCollectionView(for newsSection: String) -> UICollectionView {
         let layout = inferNewsCollectionViewLayout(with: view.bounds.size)
         
-        let collectionView = self.sectionsCollectionViews[newsSection]?.value ?? UICollectionView(frame: .zero, collectionViewLayout: layout)
+        var collectionView: UICollectionView
         
-        collectionView.dataSource = self
-        collectionView.delegate = self
-        collectionView.register(HorizontalArticleCollectionViewCell.self, forCellWithReuseIdentifier: "NewsCell")
+        if let dequeuedCollectionView = self.sectionsCollectionViews[newsSection]?.value {
+            collectionView = dequeuedCollectionView
+        } else {
+            collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+            collectionView.dataSource = self
+            collectionView.delegate = self
+            collectionView.register(HorizontalArticleCollectionViewCell.self, forCellWithReuseIdentifier: "NewsCell")
+            collectionView.alwaysBounceVertical = true
+            
+            let refresher = UIRefreshControl()
+            
+            refresher.tag = newsSection.hash
+            refresher.addTarget(self, action: #selector(refreshPulled(_:)), for: .valueChanged)
+            collectionView.refreshControl = refresher
+            collectionView.refreshControl?.beginRefreshing()
+        }
+        
         collectionView.backgroundColor = .clear
-        collectionView.alwaysBounceVertical = true
         
         sectionsCollectionViews[newsSection] = Weak(value: collectionView)
         
-        let refresher = UIRefreshControl()
-        
-        refresher.tag = newsSection.hash
-        refresher.addTarget(self, action: #selector(refreshPulled(_:)), for: .valueChanged)
-        collectionView.refreshControl = refresher
-        collectionView.refreshControl?.beginRefreshing()
-        
         collectionView.tag = newsSection.hash
-        hashTable[newsSection.hash] = newsSection
+        sectionCreated(newsSection)
         collectionView.prefetchDataSource = self
         presenter.fetchNews(for: newsSection)
         

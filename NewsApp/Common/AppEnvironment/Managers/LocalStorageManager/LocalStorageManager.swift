@@ -8,9 +8,15 @@
 import Foundation
 import CoreData
 
+struct PrimaryKey {
+    var key: String
+    var value: CVarArg
+}
+
 class LocalStorageManager {
     var coreDataArticlesLimit = 200
     var coreDataImagesLimit = 20
+    var coredataCategoriesLimit = 20
     
     var contextLock = NSLock()
     
@@ -24,35 +30,49 @@ class LocalStorageManager {
     }
     
     func eraseToLimits(entityName: String) {
-        let managedContext = self.persistentContainer.viewContext
-        if let entities = load(entityName: entityName) {
-            var shouldDelete = false
-            switch entityName {
-            case "LocalArticle":
-                shouldDelete = entities.count >= coreDataArticlesLimit
-            case "LocalImage" :
-                shouldDelete = entities.count >= coreDataImagesLimit
-            default:
-                break
-            }
-            if shouldDelete {
-                let oldestToDelete = entities
-                    .sorted(by: { ($0.value(forKey: "lastAccess") as? Date ?? Date()) > ($1.value(forKey: "lastAccess") as? Date ?? Date()) })
-                    .dropFirst(1)
-                contextLock.lock()
-                oldestToDelete.forEach({
-                    managedContext.delete($0)
-                })
-                contextLock.unlock()
+        DispatchQueue.main.async {
+            let managedContext = self.persistentContainer.viewContext
+            if let entities = self.load(entityName: entityName) {
+                var shouldDelete = 0
+                switch entityName {
+                case "LocalArticle":
+                    shouldDelete = entities.count - self.coreDataArticlesLimit
+                case "LocalImage":
+                    shouldDelete = entities.count - self.coreDataImagesLimit
+                case "LocalCategoryResult":
+                    shouldDelete = entities.count - self.coredataCategoriesLimit
+                default:
+                    break
+                }
+                if shouldDelete > 0 {
+                    let oldestToDelete = entities
+                        .sorted(by: { ($0.value(forKey: "lastAccess") as? Date ?? Date()) > ($1.value(forKey: "lastAccess") as? Date ?? Date()) })
+                        .dropLast(shouldDelete)
+                    self.contextLock.lock()
+                    oldestToDelete.forEach({
+                        managedContext.delete($0)
+                    })
+                    self.contextLock.unlock()
+                }
             }
         }
     }
-    struct PrimaryKey {
-        var key: String
-        var value: Any?
+    
+    ///Primary key constraint immitation
+    func primaryKeyDeleteTrigger(entityName: String, primaryKey: PrimaryKey) {
+        let managedContext = self.persistentContainer.viewContext
+        if let loaded = Current.localStorage.load(entityName: entityName, predicate: .init(format: "\(primaryKey.key) == %@", primaryKey.value)) {
+            loaded.forEach {
+                managedContext.delete($0)
+            }
+        }
     }
+    
     func save(entityFields: [String: Any?], to entityName: String, primaryKey: PrimaryKey? = nil) {
-        //TODO: add primary key constraint condition
+        
+        if let primaryKey = primaryKey {
+            primaryKeyDeleteTrigger(entityName: entityName, primaryKey: primaryKey)
+        }
         
         DispatchQueue.main.async {
             let managedContext = self.persistentContainer.viewContext
@@ -154,7 +174,7 @@ class LocalStorageManager {
             do {
                 let results = try self.persistentContainer.viewContext.fetch(fetchRequest)
                 for object in results {
-                    guard let objectData = object as? NSManagedObject else {continue}
+                    guard let objectData = object as? NSManagedObject else { continue }
                     self.persistentContainer.viewContext.delete(objectData)
                 }
             } catch let error {

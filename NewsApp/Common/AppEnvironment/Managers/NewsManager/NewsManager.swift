@@ -15,7 +15,10 @@ class NewsManager {
     var requests: [String: [((Result?) -> Void)?]] = [:]
     
     func getLocalStored(forCategory category: String) -> Result? {
-        if let result = Current.localStorage.load(entityName: "LocalCategoryResult", predicate: .init(format: "category == %@", category))?
+        if let result = Current.localStorage.load(
+            entityName: "LocalCategoryResult",
+            predicate: .init(format: "category == %@", category)
+        )?
             .first {
             guard let articleUrls = (result.value(forKey: "articleUrls") as? String)?.split(separator: ",")
                     .map({ String($0) /*as? String*/ })
@@ -51,7 +54,8 @@ class NewsManager {
                 "category": category,
                 "articleUrls": result.articles.compactMap({ $0.url }).joined(separator: ","),
                 "lastAccess": Date()],
-            to: "LocalCategoryResult"
+            to: "LocalCategoryResult",
+            primaryKey: .init(key: "category", value: category)
         )
         result.articles.forEach({
             Current.localStorage.save(
@@ -66,7 +70,11 @@ class NewsManager {
                     "title": $0.title,
                     "lastAccess": Date()
                 ],
-                to: "LocalArticle"
+                to: "LocalArticle",
+                primaryKey: $0
+                    .url.flatMap {
+                        PrimaryKey(key: "url", value: $0)
+                    }
             )
         })
         

@@ -34,6 +34,12 @@ struct ArticleModel {
     }
 }
 
+extension ArticleModel: Equatable {
+    public static func ==(lhs: ArticleModel, rhs: ArticleModel) -> Bool {
+        lhs.url == rhs.url && lhs.urlToImage == rhs.urlToImage && rhs.title == lhs.title
+    }
+}
+
 struct ArticleCellModel {
     var model: ArticleModel
     var isExpanded: Bool = false

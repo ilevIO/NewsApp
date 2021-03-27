@@ -32,17 +32,15 @@ extension NewsScreen {
         var newsSections: [String: NewsSectionModel] = [:]
         //MARK: - Subviews
         var newsCollectionView: UICollectionView!
-        var newsTableView: UITableView = .init()
-        var refreshControl = UIRefreshControl()
         
-        var topBar = NewsTopBarView()
+        var topBar: NewsTopBarView!
         var searchBar = UISearchBar()
         
         //MARK: - Constraints
         var topBarTopConstraint: NSLayoutConstraint!
         
         //MARK: - Setup
-        var hashTable: [Int: String] = [:]
+        private var hashTable: [Int: String] = [:]
         var mainCollectionView: UICollectionView!
         var sections: [String] { presenter.sections }
         private func setupMainCollectionView() {
@@ -72,8 +70,24 @@ extension NewsScreen {
             mainCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         }
         
+        private func setupTopBarView() {
+            topBar = .init(
+                searchControlHandlers: .init(
+                    onSearchButtonTapped: nil,
+                    onSearchCancelTapped: { [weak presenter] in
+                        presenter?.searchQueryChanged(to: "")
+                    },
+                    onSearchQueryChanged: { [weak presenter] searchText in
+                        presenter?.searchQueryChanged(to: searchText)
+                    }
+                )
+            )
+        }
+        
         private func initializeSubviews() {
             setupMainCollectionView()
+            
+            setupTopBarView()
         }
         
         @objc func emptyAreaTapped(_ recognizer: UITapGestureRecognizer) {
@@ -81,22 +95,14 @@ extension NewsScreen {
         }
         
         @objc func refreshPulled(_ sender: UIRefreshControl) {
-            presenter.refresh(for: hashTable[sender.tag]!)
+            withTagToSection(tag: sender.tag) { section in
+                presenter.refresh(for: section)
+            }
         }
         
         private func buildHierarchy() {
-            if usesCollectionView {
-                view.addSubview(mainCollectionView)
-                //mainCollectionView.addSubview(refreshControl)
-                //view.addSubview(newsCollectionView)
-                //newsCollectionView.addSubview(refreshControl)
-            } else {
-                view.addSubview(newsTableView)
-                newsTableView.addSubview(refreshControl)
-            }
+            view.addSubview(mainCollectionView)
             view.addSubview(topBar)
-            //topBar.addSubview(searchBar)
-            //topBar.addSubview(searchButton)
         }
         
         override func viewDidLayoutSubviews() {
@@ -108,6 +114,10 @@ extension NewsScreen {
             //newsCollectionView.contentInset.right = 16
         }
         var _viewDidAppear = false
+        
+        func sectionCreated(_ newSection: String) {
+            hashTable[newSection.hash] = newSection
+        }
         
         override func viewWillAppear(_ animated: Bool) {
             super.viewWillAppear(animated)
@@ -210,6 +220,11 @@ extension NewsScreen {
             weak var value: T?
         }
         
+        func withTagToSection(tag: Int, action: ((String) -> Void)) {
+            guard let section = hashTable[tag] else { return }
+            action(section)
+        }
+        
         var sectionsCollectionViews: [String: Weak<UICollectionView>] = [:]
         
         override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -222,24 +237,28 @@ extension NewsScreen {
                     $0.value?.collectionViewLayout.invalidateLayout()
                     $0.value?.layoutIfNeeded()
                 }
+                self.mainCollectionView.collectionViewLayout.invalidateLayout()
+                self.mainCollectionView.layoutIfNeeded()
                 //self.newsCollectionView.collectionViewLayout = layout
                 
                 //self.newsCollectionView.collectionViewLayout.invalidateLayout()
                 
-                
             }, completion: { context in
-                if self.usesCollectionView {
-                    self.sectionsCollectionViews.values.forEach {
-                        $0.value?.visibleCells.forEach {
+                
+                self.sectionsCollectionViews.values.forEach {
+                    collectionView in
+                    guard let collectionView = collectionView.value else { return }
+                    UIView.transition(with: collectionView, duration: 0.2, options: .transitionCrossDissolve) {
+                        collectionView.collectionViewLayout.invalidateLayout()
+                        
+                        collectionView.visibleCells.forEach {
                             $0.isBeingPresented()
                         }
                     }
+                }
                     /*self.newsCollectionView.visibleCells.forEach {
                         $0.isBeingPresented()
                     }*/
-                } else {
-                    self.newsTableView.visibleCells.forEach({ $0.layoutSubviews() })
-                }
             })
         }
         
@@ -259,71 +278,75 @@ extension NewsScreen {
 
 extension NewsScreen.View: NewsScreenView {
     func update(with news: [ArticleCellModel], for section: String, forced: Bool) {
-        //self.news = news
-        self.newsSections[section] = .init(name: section, articles: news) //= presenter.news
-        refreshControl.endRefreshing()
-        if !forced {
-            if usesCollectionView {
-                guard let newsCollectionView = self.sectionsCollectionViews[section]?.value else { return }
-                newsCollectionView.refreshControl?.endRefreshing()
-                let currentNumber = newsCollectionView.numberOfItems(inSection: 0)
-                let toInsert = news.count - currentNumber
-                guard toInsert > 0 else {
-                    if newsCollectionView.numberOfItems(inSection: 0) == 0 {
-                        newsCollectionView.backgroundColor = .systemRed
-                    } else {
-                        newsCollectionView.backgroundColor = .clear
-                    }
-                    return
-                }
-                //UIView.animate(withDuration: 0.3) {
-                //newsTableView.beginUpdates()
-                
-                DispatchQueue.main.async {
-                    //newsCollectionView.insertItems(at: (currentNumber..<currentNumber + toInsert).map({ IndexPath(item: $0, section: 0) }))
-                    UIView.transition(with: newsCollectionView, duration: 0.2, options: .transitionCrossDissolve) {
-                        newsCollectionView.reloadData()
-                        newsCollectionView.collectionViewLayout.invalidateLayout()
-                        newsCollectionView.layoutIfNeeded()
-                    }
-                        
-                    //newsCollectionView.setNeedsLayout()
-                    //DispatchQueue.main.async {
-                        /*UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseInOut) {
-                            newsCollectionView.collectionViewLayout.invalidateLayout()
-                            newsCollectionView.layoutIfNeeded()
-                        }*/
-                    //}
-                    /*newsCollectionView.collectionViewLayout.invalidateLayout()
-                    newsCollectionView.layoutIfNeeded()*/
-                }
-                //}
-                //newsTableView.endUpdates()
-            } else {
-                let currentNumber = newsTableView.numberOfRows(inSection: 0)//self.newsCollectionView.numberOfItems(inSection: 0)
-                let toInsert = news.count - currentNumber
-                guard toInsert > 0 else { return }
-                //UIView.animate(withDuration: 0.3) {
-                newsTableView.beginUpdates()
-                self.newsTableView.insertRows(at: (currentNumber..<currentNumber + toInsert).map({ IndexPath(item: $0, section: 0) }), with: .fade)//newsCollectionView.insertItems(at: (currentNumber..<currentNumber + toInsert).map({ IndexPath(item: $0, section: 0) }))
-                //}
-                newsTableView.endUpdates()
-            }
+        
+        //Fixing on current section collectionview, preventing from scrolling to other
+        var section = section
+        if section.isEmpty {
+            mainCollectionView.scrollToItem(at: .init(item: 0, section: 0), at: .left, animated: false)
+            section = sections[0]
         } else {
-            //UIView.animate(withDuration: 0.3) {
-            if usesCollectionView {
-                guard let newsCollectionView = self.sectionsCollectionViews[section]?.value else { return }
-                
-                DispatchQueue.main.async {
-                    newsCollectionView.refreshControl?.endRefreshing()
-                }
-                
-               // DispatchQueue.main.async {
-                    newsCollectionView.reloadData()
-               // }
-            } else {
-                self.newsTableView.reloadData()
+            mainCollectionView.isScrollEnabled = true
+        }
+        
+        //Preventing update when articles not changed
+        if let currentNews = self.newsSections[section]?.articles,
+           currentNews.count == news.count &&
+            currentNews
+            .allSatisfy({ currentArticle in
+                news.contains { $0.model == currentArticle.model }
+            })
+        {
+            return
+        }
+        
+        self.newsSections[section] = .init(name: section, articles: news) //= presenter.news
+        
+        guard let newsCollectionView = self.sectionsCollectionViews[section]?.value else { return }
+        DispatchQueue.main.async {
+            //newsCollectionView.insertItems(at: (currentNumber..<currentNumber + toInsert).map({ IndexPath(item: $0, section: 0) }))
+            newsCollectionView.refreshControl?.endRefreshing()
+            UIView.transition(with: newsCollectionView, duration: 0.2, options: .transitionCrossDissolve) {
+                newsCollectionView.reloadData()
+                newsCollectionView.collectionViewLayout.invalidateLayout()
+                newsCollectionView.layoutIfNeeded()
             }
+                
+            //newsCollectionView.setNeedsLayout()
+            //DispatchQueue.main.async {
+                /*UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseInOut) {
+                    newsCollectionView.collectionViewLayout.invalidateLayout()
+                    newsCollectionView.layoutIfNeeded()
+                }*/
+            //}
+            /*newsCollectionView.collectionViewLayout.invalidateLayout()
+            newsCollectionView.layoutIfNeeded()*/
+        }
+        return
+        if !forced {
+            guard let newsCollectionView = self.sectionsCollectionViews[section]?.value else { return }
+            newsCollectionView.refreshControl?.endRefreshing()
+            let currentNumber = newsCollectionView.numberOfItems(inSection: 0)
+            let toInsert = news.count - currentNumber
+            guard toInsert > 0 else {
+                if newsCollectionView.numberOfItems(inSection: 0) == 0 {
+                    //newsCollectionView.backgroundColor = .systemRed
+                } else {
+                    //newsCollectionView.backgroundColor = .clear
+                }
+                return
+            }
+            //UIView.animate(withDuration: 0.3) {
+            //newsTableView.beginUpdates()
+            
+            
+        } else {
+            guard let newsCollectionView = self.sectionsCollectionViews[section]?.value else { return }
+            
+            DispatchQueue.main.async {
+                newsCollectionView.refreshControl?.endRefreshing()
+            }
+            newsCollectionView.reloadData()
+              
         }
     }
 }

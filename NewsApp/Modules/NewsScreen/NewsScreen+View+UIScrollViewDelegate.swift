@@ -19,9 +19,11 @@ extension NewsScreen.View {
 extension NewsScreen.View {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         guard scrollView !== mainCollectionView else {
+            //To prevent 
+            scrollView.contentOffset.y = 0
             return
         }
-        if !scrollState.lockScroll && _viewDidAppear {
+        if !scrollState.lockScroll && _viewDidAppear && false {
             let contentOffset = scrollView.contentOffset.y
     
             let deltaToShowBar: CGFloat = 0
@@ -52,7 +54,7 @@ extension NewsScreen.View {
                 } else if scrollState.prevScrollOffset > contentOffset {
                     //Scrolled up:
                     if scrollState.scrollingDirection != -1 {
-                        scrollState.currentDirectionBeginScrollOffset = contentOffset
+                        scrollState.currentDirectionBeginScrollOffset = scrollState.prevScrollOffset//contentOffset
                         prevTopBarVisibleHeight = //Self.topBarHeight +
                             topBarTopConstraint.constant
                         scrollState.scrollingDirection = -1
@@ -76,6 +78,9 @@ extension NewsScreen.View {
                         }
                     }
                 }
+                //
+                //(scrollView as? UICollectionView)?.collectionViewLayout.invalidateLayout()
+                //mainCollectionView.layoutIfNeeded()
                 topBar.contentView.alpha = topBarTopConstraint.constant / Self.topBarHeight
                 topBar.dropShadow(opacity: 0.2 * Float(1 - topBarTopConstraint.constant / Self.topBarHeight), radius: 20)
                 scrollState.prevScrollOffset = scrollView.contentOffset.y
@@ -83,8 +88,10 @@ extension NewsScreen.View {
         }
         
         if (scrollView.contentOffset.y + 1) >= (scrollView.contentSize.height - scrollView.frame.size.height) {
+            withTagToSection(tag: scrollView.tag) { section in
+                presenter.scrollDidReachBounds(in: section)
+            }
             
-            presenter.scrollDidReachBounds(withOffset: scrollView.contentOffset.y - scrollView.frame.minY, in: hashTable[scrollView.tag]!)
         }
     }
     
