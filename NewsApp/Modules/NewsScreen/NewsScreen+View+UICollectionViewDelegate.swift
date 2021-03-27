@@ -19,7 +19,7 @@ extension NewsScreen.View: UICollectionViewDelegate, UICollectionViewDataSource 
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: size, subitem: item, count: numberOfItemsInRow)
         group.interItemSpacing = .fixed(12)
         let section = NSCollectionLayoutSection(group: group)
-        section.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 16, bottom: 0, trailing: 16)
+        section.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 16, bottom: view.safeAreaInsets.bottom, trailing: 16)
         section.interGroupSpacing = 18
         let layout = UICollectionViewCompositionalLayout(section: section)
         return layout
@@ -41,10 +41,13 @@ extension NewsScreen.View: UICollectionViewDelegate, UICollectionViewDataSource 
         self.sectionsCollectionViews[newsSection] = Weak(value: collectionView)
         //newsCollectionView = collectionView
         let refresher = UIRefreshControl()
-        refresher.tag = newsSection.hash
-        collectionView.addSubview(refresher)
+        //refresher.tag = newsSection.hash
+        //collectionView.addSubview(refresher)
         collectionView.tag = newsSection.hash
         hashTable[newsSection.hash] = newsSection
+        collectionView.refreshControl = refresher
+        collectionView.refreshControl?.beginRefreshing()
+        presenter.fetchNews(for: newsSection)
         return collectionView
     }
     

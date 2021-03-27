@@ -140,9 +140,7 @@ extension NewsScreen {
             view.backgroundColor = .systemGroupedBackground
             topBar.dropShadow(color: .darkGray, opacity: 0.2, radius: 12)
             
-            topBar.categoriesStackView.configure(with: [
-                "NewsCell", "NewsCell", "NewsCell", "NewsCell", "NewsCell", "NewsCell", "NewsCell", "NewsCell", "NewsCell", "NewsCell", "NewsCell", "NewsCell", "NewsCell",
-            ])
+            topBar.categoriesStackView.configure(with: sections)
             
             if usesCollectionView {
                 /*newsCollectionView.dataSource = self
@@ -250,8 +248,6 @@ extension NewsScreen {
             super.viewDidLoad()
             
             setup()
-            
-            presenter.fetchNews(for: "Apple")
         }
         
         var sections = ["Apple", "IT", "Belarus", "Cocoa", "iOS"]
@@ -313,6 +309,7 @@ extension NewsScreen.View: NewsScreenView {
         if !forced {
             if usesCollectionView {
                 guard let newsCollectionView = self.sectionsCollectionViews[section]?.value else { return }
+                newsCollectionView.refreshControl?.endRefreshing()
                 let currentNumber = newsCollectionView.numberOfItems(inSection: 0)
                 let toInsert = news.count - currentNumber
                 guard toInsert > 0 else { return }

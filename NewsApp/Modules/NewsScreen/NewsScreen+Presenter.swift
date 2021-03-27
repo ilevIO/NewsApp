@@ -43,22 +43,25 @@ extension NewsScreen {
         
         var newsLoader = NewsLoader()
         
-        var currentPeriod: ClosedRange<Date> = {
+        var currentPeriod: [String: ClosedRange<Date>] = [:]
+        var lastPeriod: ClosedRange<Date> {
             Calendar.current.date(byAdding: .day, value: -1, to: Date())!...Date()
-        }()
+        }
         
         var query = ""
         var lastQueryTask: Cancellable?
         
         func refresh(for category: String) {
-            currentPeriod = Calendar.current.date(byAdding: .day, value: -1, to: Date())!...Date()
+            let currentCategoryPeriod = lastPeriod
+            currentPeriod[category] = currentCategoryPeriod
             news[category] = .init(name: category, articles: [])
             //self.currentPeriod = Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.lowerBound)!...Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.upperBound)!
-            newsLoader.loadNext(query: query.isEmpty ? nil : query, currentLoaded: 0, for: currentPeriod) { [weak self] news in
+            newsLoader.loadNext(query: query.isEmpty ? nil : query, currentLoaded: 0, for: currentCategoryPeriod) { [weak self] news in
                 guard let self = self, let news = news else { return }
                 
                 if !news.articles.isEmpty {
-                    self.currentPeriod = Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.lowerBound)!...Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.upperBound)!
+                    let currentCategoryPeriod = self.currentPeriod[category] ?? self.lastPeriod
+                    self.currentPeriod[category] = Calendar.current.date(byAdding: .day, value: -1, to: currentCategoryPeriod.lowerBound)!...Calendar.current.date(byAdding: .day, value: -1, to: currentCategoryPeriod.upperBound)!
                     /*self.news.append(
                         contentsOf:
                             news.articles.compactMap {
@@ -98,15 +101,16 @@ extension NewsScreen {
         }
         
         func loadNext(category: String) {
-            let currentPeriod = self.currentPeriod
+            let currentPeriod = self.currentPeriod[category] ?? lastPeriod
+            self.currentPeriod[category] = currentPeriod
             self.news[category] = self.news[category] ?? .init(name: category, articles: [])
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
-                guard let self = self, currentPeriod == self.currentPeriod else { return }
+                guard let self = self, currentPeriod == self.currentPeriod[category] else { return }
                 
                 self.newsLoader.loadNext(
                     query: self.query.isEmpty ? nil : self.query,
-                    currentLoaded: self.news.count,
-                    for: self.currentPeriod,
+                    currentLoaded: self.news[category]?.articles.count ?? 0,
+                    for: currentPeriod,
                     category: category
                 ) { [weak self] news in
                     guard let self = self, let news = news else { return }
@@ -115,8 +119,9 @@ extension NewsScreen {
                             fetchedArticle.url == $0.model.url
                         }
                     }
-                    if !news.articles.isEmpty {
-                        self.currentPeriod = Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.lowerBound)!...Calendar.current.date(byAdding: .day, value: -1, to: self.currentPeriod.upperBound)!
+                    let currentPeriod = self.currentPeriod[category] ?? self.lastPeriod
+                    if !newArticles.isEmpty {
+                        self.currentPeriod[category] = Calendar.current.date(byAdding: .day, value: -1, to: currentPeriod.lowerBound)!...Calendar.current.date(byAdding: .day, value: -1, to: currentPeriod.upperBound)!
                         self.news[category]?.articles.append(contentsOf: newArticles.compactMap {  ArticleCellModel(model: ArticleModel(with: $0), isExpanded: false) })
                         DispatchQueue.main.async {
                             UIView.animate(withDuration: 0.3) {
