@@ -148,7 +148,7 @@ extension NewsScreen {
             }
         }
         
-        func loadNext(category: String) {
+        func loadNext(category: String, completion: (() -> Void)? = nil) {
             newsQueue.sync {
                 //Use cached articles as placeholders until relevant are being fetched if it is the first time loading category
                 if news[category] == nil {
@@ -157,17 +157,26 @@ extension NewsScreen {
                 //Period to be loaded
                 let currentPeriod = self.currentPeriod[category] ?? lastPeriod
                 
-                guard loadingPeriods[category] != currentPeriod else { return }
+                guard loadingPeriods[category] != currentPeriod else {
+                    completion?()
+                    return
+                }
                 loadingPeriods[category] = currentPeriod
                 self.currentPeriod[category] = currentPeriod
             
                 self.news[category] = self.news[category] ?? .init(name: category, articles: [])
             
-                guard currentPeriod.lowerBound.isWithinPeriod(days: loadArticlesDayLimit) else { return }
+                guard currentPeriod.lowerBound.isWithinPeriod(days: loadArticlesDayLimit) else {
+                    completion?()
+                    return
+                }
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + loadingBreak) { [weak self] in
                     //Change of self.currentPeriod indicates that it has been loaded for currend period
-                    guard let self = self, currentPeriod == self.currentPeriod[category] else { return }
+                    guard let self = self, currentPeriod == self.currentPeriod[category] else {
+                        completion?()
+                        return
+                    }
                     
                     self.newsLoader.loadNext(
                         query: self.query.isEmpty ? nil : self.query,
@@ -179,6 +188,7 @@ extension NewsScreen {
                         guard let news = news else {
                             //Show error message
                             DispatchQueue.main.async {
+                                completion?()
                                 self.view?.update(with: [], for: category)
                             }
                             return
@@ -207,6 +217,7 @@ extension NewsScreen {
                             let news = self.news
                             
                             guard let categoryArticles = news[category]?.articles else { return }
+                            completion?()
                             DispatchQueue.main.async {
                                 self.view?.update(with: categoryArticles, for: category)
                             }
@@ -220,8 +231,8 @@ extension NewsScreen {
             loadNext(category: category)
         }
         
-        func fetchNews(for category: String) {
-            loadNext(category: category)
+        func fetchNews(for category: String, completion: (() -> Void)? = nil) {
+            loadNext(category: category, completion: completion)
         }
     }
 }

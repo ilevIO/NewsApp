@@ -135,7 +135,11 @@ extension NewsScreen.View {
         collectionView.tag = category.hash
         categoryCreated(category)
         collectionView.prefetchDataSource = self
-        presenter.fetchNews(for: category)
+        presenter.fetchNews(for: category) { [weak collectionView] in
+            DispatchQueue.main.async {
+                collectionView?.refreshControl?.endRefreshing()
+            }
+        }
         
         return collectionView
     }
