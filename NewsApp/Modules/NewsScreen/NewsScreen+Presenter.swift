@@ -19,7 +19,7 @@ extension NewsScreen {
         
         var newsLoader = NewsLoader()
         ///Default sections. Are to be made modifiable in future
-        let categories = ["Apple", "Business", "Sport", "Entertainment", "World", "Belarus"]
+        let categories = ["Belarus", "Business", "Sport", "Entertainment", "World", "Apple"]
         ///Max number of days to load articles for
         let loadArticlesDayLimit: TimeInterval = 7
         ///Articles by their category name
