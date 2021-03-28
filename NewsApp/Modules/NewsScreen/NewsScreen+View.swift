@@ -252,13 +252,11 @@ extension NewsScreen.View: NewsScreenView {
             newsCollectionView.reloadData()
             newsCollectionView.collectionViewLayout.invalidateLayout()
             newsCollectionView.layoutIfNeeded()
-        } completion: { (didFinish) in
+        } completion: { _ in
             //Requires explicit layout update since collectionView does not update layout of its cells after Expand/Collapse button being added during reloading after scrolling to a category
-            if didFinish {
-                UIView.transition(with: newsCollectionView, duration: 0.2, options: .transitionCrossDissolve) {
-                    newsCollectionView.collectionViewLayout.invalidateLayout()
-                    newsCollectionView.layoutIfNeeded()
-                }
+            UIView.transition(with: newsCollectionView, duration: 0.2, options: .transitionCrossDissolve) {
+                newsCollectionView.collectionViewLayout.invalidateLayout()
+                newsCollectionView.layoutIfNeeded()
             }
         }
         
