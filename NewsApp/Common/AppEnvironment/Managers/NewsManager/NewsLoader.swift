@@ -10,7 +10,13 @@ import Foundation
 class NewsLoader: SubscriberObject {
     var subscriptionId: Int = UUID().hashValue
     
-    func loadNext(query: String? = nil, for timePeriod: ClosedRange<Date>?, category: String? = nil, completion: ((FetchedEverything?) -> Void)?) {
+    ///- Parameter query: query for title
+    ///- Parameter category: used as q parameter
+    func loadNext(query: String? = nil,
+                  for timePeriod: ClosedRange<Date>?,
+                  category: String? = nil,
+                  completion: ((FetchedEverything?) -> Void)?
+    ) {
         Current.news.getEverything(
             .init(
                 q: category,

@@ -7,7 +7,6 @@
 
 import Foundation
 import UIKit
-import Combine
 
 class ImageManager {
     var cache = Cache<String, Data>()
@@ -61,8 +60,6 @@ class ImageManager {
         let task = URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
             if let data = data {
                 guard let image = UIImage(data: data) else {
-                    //TODO: investigate
-                    //print(url.absoluteString)
                     self?.lock.execute { self?.requests.removeValue(forKey: url) }
                     completion?(nil)
                     return
