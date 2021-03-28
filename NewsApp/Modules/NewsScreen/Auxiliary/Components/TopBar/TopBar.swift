@@ -65,7 +65,9 @@ class NewsTopBarView: UIView {
     
     private func configureSubviews() {
         categoriesStackView.axis = .horizontal
-        categoriesStackView.alignment = .bottom
+        //categoriesStackView.alignment = .bottom
+        categoriesStackView.distribution = .fill
+        
         categoriesScrollView.showsHorizontalScrollIndicator = false
         
         searchButton.setImage(UIImage(systemName: "magnifyingglass"), for: .normal)
@@ -86,7 +88,7 @@ class NewsTopBarView: UIView {
         categoriesStackView.translatesAutoresizingMaskIntoConstraints = false
         categoriesStackView.attach(to: categoriesScrollView, left: 0, right: 0)
         categoriesStackView.attach(to: contentView, bottom: 0)
-        categoriesStackView.attach(to: searchBar, top: 0)
+        categoriesStackView.heightAnchor.constraint(equalToConstant: 40).isActive = true
         
         searchBar.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -102,8 +104,7 @@ class NewsTopBarView: UIView {
         ]
         enableCollapsedSearchLayout()
         searchButton.translatesAutoresizingMaskIntoConstraints = false
-        searchButton.attach(to: searchBar, left: 0, right: 0)
-        searchButton.attach(to: categoriesStackView, centerY: 0)
+        searchButton.attach(to: searchBar, left: 0, right: 0, centerY: 0)
     }
     
     private func setup() {
