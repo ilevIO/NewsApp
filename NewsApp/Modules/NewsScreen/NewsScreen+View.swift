@@ -236,6 +236,10 @@ extension NewsScreen.View: NewsScreenView {
             updatedCategory = sections[0]
         }
         
+        guard let newsCollectionView = self.sectionsCollectionViews[updatedCategory]?.value else { return }
+        
+        newsCollectionView.refreshControl?.endRefreshing()
+        
         //Preventing update when articles not changed
         if let currentNews = self.newsSections[updatedCategory]?.articles,
            currentNews.count == news.count &&
@@ -245,9 +249,7 @@ extension NewsScreen.View: NewsScreenView {
         
         newsSections[updatedCategory] = .init(name: updatedCategory, articles: news)
         
-        guard let newsCollectionView = self.sectionsCollectionViews[updatedCategory]?.value else { return }
         DispatchQueue.main.async {
-            newsCollectionView.refreshControl?.endRefreshing()
             UIView.transition(with: newsCollectionView, duration: 0.2, options: .transitionCrossDissolve) {
                 newsCollectionView.reloadData()
                 newsCollectionView.collectionViewLayout.invalidateLayout()
