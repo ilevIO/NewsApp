@@ -15,7 +15,9 @@ extension Root {
         var rootView = NewsScreen.view(with: .init())
         
         func navigate(to viewController: UIViewController) {
-            rootView.navigationController?.pushViewController(viewController, animated: true)
+            DispatchQueue.main.async {
+                self.rootView.navigationController?.pushViewController(viewController, animated: true)
+            }
         }
         
         init() {

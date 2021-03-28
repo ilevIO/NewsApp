@@ -52,30 +52,31 @@ extension APIProvider.NewsGroup {
         guard let path = Bundle.main.path(forResource: "newsmock", ofType: "json") else { return nil }
         let url = URL(fileURLWithPath: path)
         let data = try! Data(contentsOf: url)
-        
         var result = try! JSONDecoder().decode(Endpoints.News.GetEverything.Response.self, from: data)
         
-        let pageSize = params.pageSize ?? 5
-        if params.qInTitle == nil {
-            let page = params.page ?? (Int(params.to!.distance(to: Date())) / (24 * 60 * 60) + 1)
-            result.articles = result.articles?
-                .enumerated()
-                .filter { article in
-                    ((page - 1) * pageSize..<(page * pageSize))
-                        .contains(article.offset)
-                }
-                .map { $0.element }
-        } else {
-            result.articles = result.articles?
-                .filter { article in
-                    params.qInTitle
-                        .flatMap {
-                            article.title?.lowercased().contains($0.lowercased())
-                        }
-                        ?? true
-                }
+        DispatchQueue.global().async {
+            let pageSize = params.pageSize ?? 5
+            if params.qInTitle == nil {
+                let page = params.page ?? (Int(params.to!.distance(to: Date())) / (24 * 60 * 60) + 1)
+                result.articles = result.articles?
+                    .enumerated()
+                    .filter { article in
+                        ((page - 1) * pageSize..<(page * pageSize))
+                            .contains(article.offset)
+                    }
+                    .map { $0.element }
+            } else {
+                result.articles = result.articles?
+                    .filter { article in
+                        params.qInTitle
+                            .flatMap {
+                                article.title?.lowercased().contains($0.lowercased())
+                            }
+                            ?? true
+                    }
+            }
+            completion?(FetchedEverything(with: result))
         }
-        completion?(FetchedEverything(with: result))
         return nil
     })
 }

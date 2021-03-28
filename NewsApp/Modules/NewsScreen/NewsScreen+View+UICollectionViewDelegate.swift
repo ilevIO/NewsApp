@@ -77,7 +77,16 @@ extension NewsScreen.View: UICollectionViewDelegate, UICollectionViewDataSource,
 
 extension NewsScreen.View {
     func inferNewsCollectionViewLayout(with size: CGSize) -> UICollectionViewLayout {
-        let numberOfItemsInRow = size.height > size.width ? 1 : 2
+        //Presenting one column in vertical view and two in horizontal
+        var numberOfItemsInRow: Int
+            
+        switch UIDevice.current.userInterfaceIdiom {
+        case .pad, .mac:
+            numberOfItemsInRow = size.height > size.width ? 2 : 3
+        default:
+            numberOfItemsInRow = size.height > size.width ? 1 : 2
+        }
+            
         let size = NSCollectionLayoutSize(
             widthDimension: NSCollectionLayoutDimension.fractionalWidth(1),
             heightDimension: NSCollectionLayoutDimension.estimated(200)
@@ -122,7 +131,6 @@ extension NewsScreen.View {
         collectionView.backgroundColor = .clear
         
         categoriesCollectionViews[category] = Weak(value: collectionView)
-        
         
         collectionView.tag = category.hash
         categoryCreated(category)

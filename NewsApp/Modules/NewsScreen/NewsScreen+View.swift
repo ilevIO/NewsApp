@@ -170,9 +170,6 @@ extension NewsScreen {
                 }
                 self.mainCollectionView.collectionViewLayout.invalidateLayout()
                 self.mainCollectionView.layoutIfNeeded()
-                //self.newsCollectionView.collectionViewLayout = layout
-                
-                //self.newsCollectionView.collectionViewLayout.invalidateLayout()
                 
             }, completion: { context in
                 
@@ -187,9 +184,6 @@ extension NewsScreen {
                         }
                     }
                 }
-                    /*self.newsCollectionView.visibleCells.forEach {
-                        $0.isBeingPresented()
-                    }*/
             })
         }
         
