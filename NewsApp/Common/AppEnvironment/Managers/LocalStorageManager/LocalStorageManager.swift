@@ -36,11 +36,13 @@ class LocalStorageManager {
             let managedContext = self.persistentContainer.viewContext
             if let entities = self.load(entityName: entityName) {
                 var shouldDelete = 0
+                
                 if let limit = self.entitiesEntryLimits[entityName] {
                     shouldDelete = entities.count - limit
                 }
                 
                 if shouldDelete > 0 {
+                    //TODO: add custom logic for various objects (e.g. delete news only based on their publishedAt value)
                     let oldestToDelete = entities
                         .sorted(by: { ($0.value(forKey: "lastAccess") as? Date ?? Date()) > ($1.value(forKey: "lastAccess") as? Date ?? Date()) })
                         .dropLast(shouldDelete)

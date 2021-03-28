@@ -137,6 +137,12 @@ class ArticleCellView: UIView, SubscriberObject {
             timeLabel.text = time
             headerStackView.addArrangedSubview(timeLabel)
         }
+        
+        /*headerStackView.arrangedSubviews.forEach {
+            $0.setContentHuggingPriority(.required, for: .vertical)
+            $0.setContentCompressionResistancePriority(.required, for: .vertical)
+        }*/
+        
         titleLabel.text = articleModel.title
         arrangedSubviews.append(titleLabel)
         

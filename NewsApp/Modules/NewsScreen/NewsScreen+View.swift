@@ -80,8 +80,11 @@ extension NewsScreen {
             section.orthogonalScrollingBehavior = .paging
             
             section.visibleItemsInvalidationHandler = { [weak self] (visibleItems, offset, env) in
+                //Gets called instead of scrollViewDidScroll
+                //Changes highlighted category indicator
                 guard let self = self else { return }
                 let index = Int(round(offset.x /  self.mainCollectionView.frame.width))
+                guard index < self.categories.count else { return }
                 let category = self.categories[index]
                 UIView.animate(withDuration: 0.2) {
                     self.topBar.categoriesStackView.selectCategory(category)
@@ -245,12 +248,20 @@ extension NewsScreen.View: NewsScreenView {
         
         newsSections[updatedCategory] = .init(name: updatedCategory, articles: news)
         
-        DispatchQueue.main.async {
-            UIView.transition(with: newsCollectionView, duration: 0.2, options: .transitionCrossDissolve) {
-                newsCollectionView.reloadData()
-                newsCollectionView.collectionViewLayout.invalidateLayout()
-                newsCollectionView.layoutIfNeeded()
+        UIView.transition(with: newsCollectionView, duration: 0.2, options: .transitionCrossDissolve) {
+            newsCollectionView.reloadData()
+            newsCollectionView.collectionViewLayout.invalidateLayout()
+            newsCollectionView.layoutIfNeeded()
+        } completion: { (didFinish) in
+            //Requires explicit layout update since collectionView does not update layout of its cells after Expand/Collapse button being added during reloading after scrolling to a category
+            if didFinish {
+                UIView.transition(with: newsCollectionView, duration: 0.2, options: .transitionCrossDissolve) {
+                    newsCollectionView.collectionViewLayout.invalidateLayout()
+                    newsCollectionView.layoutIfNeeded()
+                }
             }
         }
+        
+       
     }
 }

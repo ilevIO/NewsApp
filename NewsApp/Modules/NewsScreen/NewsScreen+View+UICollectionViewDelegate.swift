@@ -111,6 +111,7 @@ extension NewsScreen.View {
         
         var collectionView: UICollectionView
         
+        //TODO: improve dequeuing logic
         if let dequeuedCollectionView = self.categoriesCollectionViews[category]?.value {
             collectionView = dequeuedCollectionView
         } else {
