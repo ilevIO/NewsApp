@@ -73,12 +73,12 @@ class NewsTopBarView: UIView {
         
         searchBar.showsCancelButton = true
         searchBar.backgroundImage = .init()
-        searchBar.searchBarStyle = .minimal
+        searchBar.searchBarStyle = .default
         searchBar.delegate = self
     }
     
     private func setupLayout() {
-        fillLayout(with: contentView)
+        fillSafe(with: contentView)
         
         categoriesScrollView.translatesAutoresizingMaskIntoConstraints = false
         categoriesScrollView.attach(to: contentView, left: 0, top: 0, bottom: 0)
@@ -93,7 +93,7 @@ class NewsTopBarView: UIView {
             searchBar.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: 0),
             categoriesScrollView.rightAnchor.constraint(equalTo: searchBar.leftAnchor, constant: 0)
         ])
-        searchBar.attach(to: contentView, right: 0, bottom: 0)
+        searchBar.attach(to: contentView, right: 0, top: 0, bottom: 0)
         expandedSearchConstraints = [
             searchBar.widthAnchor.constraint(equalTo: contentView.widthAnchor)
         ]
@@ -101,7 +101,9 @@ class NewsTopBarView: UIView {
             searchBar.widthAnchor.constraint(equalTo: searchBar.heightAnchor, multiplier: 1.0)
         ]
         enableCollapsedSearchLayout()
-        searchBar.fillLayout(with: searchButton)
+        searchButton.translatesAutoresizingMaskIntoConstraints = false
+        searchButton.attach(to: searchBar, left: 0, right: 0)
+        searchButton.attach(to: categoriesStackView, centerY: 0)
     }
     
     private func setup() {

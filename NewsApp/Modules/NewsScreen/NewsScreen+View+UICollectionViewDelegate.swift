@@ -8,22 +8,24 @@
 import Foundation
 import UIKit
 
+extension NewsScreen.View {
+    static var articleCellIdentifier: String { "ArticleCell" }
+    static var articleCollectionCellIdentifier: String { "ArticleCollectionCell" }
+}
+
 extension NewsScreen.View: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDataSourcePrefetching {
     func collectionView(_ collectionView: UICollectionView, prefetchItemsAt indexPaths: [IndexPath]) {
-        withTagToSection(tag: collectionView.tag, action: presenter.scrollDidReachBounds)
-        
-        //presenter.loadNext(category: hashTable[collectionView.tag]!)
+        withTagToCategory(tag: collectionView.tag, action: presenter.scrollDidReachBounds)
     }
-    
-    
+     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         if collectionView === mainCollectionView {
-            return sections.count
+            return categories.count
         }
         
         var articleCount = 0
         
-        withTagToSection(tag: collectionView.tag) { section in
+        withTagToCategory(tag: collectionView.tag) { section in
             articleCount = newsSections[section]?.articles.count ?? 0
         }
         
@@ -32,13 +34,14 @@ extension NewsScreen.View: UICollectionViewDelegate, UICollectionViewDataSource,
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         if collectionView === mainCollectionView {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "NewsCell", for: indexPath)
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: Self.articleCollectionCellIdentifier, for: indexPath)
             cell.contentView.subviews.forEach({ $0.removeAllConstraints(); $0.removeFromSuperview() })
-            cell.contentView.fill(with: createCollectionView(for: sections[indexPath.row]))
+            cell.contentView.fill(with: createCollectionView(for: categories[indexPath.row]))
             return cell
         }
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "NewsCell", for: indexPath) as! HorizontalArticleCollectionViewCell
-        withTagToSection(tag: collectionView.tag) { section in
+        
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: Self.articleCellIdentifier, for: indexPath) as! HorizontalArticleCollectionViewCell
+        withTagToCategory(tag: collectionView.tag) { section in
             if let news = newsSections[section]?.articles {
                 cell.configure(with: news[indexPath.row])
             }
@@ -57,15 +60,15 @@ extension NewsScreen.View: UICollectionViewDelegate, UICollectionViewDataSource,
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        withTagToSection(tag: collectionView.tag) { section in
+        withTagToCategory(tag: collectionView.tag) { section in
             presenter.newsCellTapped(at: indexPath, in: section)
         }
     }
     
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         guard collectionView !== mainCollectionView else { return }
+        //Determines whether to display expand button
         DispatchQueue.main.async {
-            //collectionView.collectionViewLayout.invalidateLayout()
             cell.isBeingPresented()
         }
     }
@@ -94,23 +97,23 @@ extension NewsScreen.View {
         return layout
     }
     
-    func createCollectionView(for newsSection: String) -> UICollectionView {
+    func createCollectionView(for category: String) -> UICollectionView {
         let layout = inferNewsCollectionViewLayout(with: view.bounds.size)
         
         var collectionView: UICollectionView
         
-        if let dequeuedCollectionView = self.sectionsCollectionViews[newsSection]?.value {
+        if let dequeuedCollectionView = self.categoriesCollectionViews[category]?.value {
             collectionView = dequeuedCollectionView
         } else {
             collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
             collectionView.dataSource = self
             collectionView.delegate = self
-            collectionView.register(HorizontalArticleCollectionViewCell.self, forCellWithReuseIdentifier: "NewsCell")
+            collectionView.register(HorizontalArticleCollectionViewCell.self, forCellWithReuseIdentifier: Self.articleCellIdentifier)
             collectionView.alwaysBounceVertical = true
             
             let refresher = UIRefreshControl()
             
-            refresher.tag = newsSection.hash
+            refresher.tag = category.hash
             refresher.addTarget(self, action: #selector(refreshPulled(_:)), for: .valueChanged)
             collectionView.refreshControl = refresher
         }
@@ -118,13 +121,13 @@ extension NewsScreen.View {
         
         collectionView.backgroundColor = .clear
         
-        sectionsCollectionViews[newsSection] = Weak(value: collectionView)
+        categoriesCollectionViews[category] = Weak(value: collectionView)
         
         
-        collectionView.tag = newsSection.hash
-        sectionCreated(newsSection)
+        collectionView.tag = category.hash
+        categoryCreated(category)
         collectionView.prefetchDataSource = self
-        presenter.fetchNews(for: newsSection)
+        presenter.fetchNews(for: category)
         
         return collectionView
     }

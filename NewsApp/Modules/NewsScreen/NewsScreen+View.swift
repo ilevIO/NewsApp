@@ -15,24 +15,26 @@ extension NewsScreen {
     
     class View: UIViewController {
         //MARK: - Consts
-        static let topBarHeight: CGFloat = 40
+        static let topBarHeight: CGFloat = 50
         
         var presenter: Presenter!
         
         //MARK: - State
         private(set)var _viewDidAppear = false
+        
+        var shouldHideTopBarOnScroll = false
         var scrollState: ScrollState = .init()
         var prevTopBarVisibleHeight: CGFloat = 0
         
         var newsSections: [String: NewsSectionModel] = [:]
         
-        private var hashTable: [Int: String] = [:]
-        var sections: [String] { presenter.sections }
+        private var categoriesHashMap: [Int: String] = [:]
+        var categories: [String] { presenter.categories }
         
         //MARK: - Subviews
         var mainCollectionView: UICollectionView!
         ///CollectionViews with articles related to their categories
-        var sectionsCollectionViews: [String: Weak<UICollectionView>] = [:]
+        var categoriesCollectionViews: [String: Weak<UICollectionView>] = [:]
         
         var topBar: NewsTopBarView!
         var searchBar = UISearchBar()
@@ -46,21 +48,21 @@ extension NewsScreen {
         }
         
         @objc func refreshPulled(_ sender: UIRefreshControl) {
-            withTagToSection(tag: sender.tag) { section in
-                if !presenter.refresh(for: section) {
+            withTagToCategory(tag: sender.tag) { category in
+                if !presenter.refresh(for: category) {
                     sender.endRefreshing()
                 }
             }
         }
         
-        func sectionCreated(_ newSection: String) {
-            hashTable[newSection.hash] = newSection
+        func categoryCreated(_ newCategory: String) {
+            categoriesHashMap[newCategory.hash] = newCategory
         }
         
         ///Performs action with category name infering from its hash if found
-        func withTagToSection(tag: Int, action: ((String) -> Void)) {
-            guard let section = hashTable[tag] else { return }
-            action(section)
+        func withTagToCategory(tag: Int, action: ((String) -> Void)) {
+            guard let category = categoriesHashMap[tag] else { return }
+            action(category)
         }
         
         //MARK: - Setup
@@ -80,9 +82,9 @@ extension NewsScreen {
             section.visibleItemsInvalidationHandler = { [weak self] (visibleItems, offset, env) in
                 guard let self = self else { return }
                 let index = Int(round(offset.x /  self.mainCollectionView.frame.width))
-                let section = self.sections[index]
+                let category = self.categories[index]
                 UIView.animate(withDuration: 0.2) {
-                    self.topBar.categoriesStackView.selectCategory(section)
+                    self.topBar.categoriesStackView.selectCategory(category)
                 }
             }
             
@@ -121,15 +123,15 @@ extension NewsScreen {
             view.backgroundColor = .systemGroupedBackground
             topBar.dropShadow(color: .darkGray, opacity: 0.2, radius: 12)
             
-            topBar.categoriesStackView.configure(with: sections)
+            topBar.categoriesStackView.configure(with: categories)
             topBar.categoriesStackView.onCategoryChanged = { [weak self] category in
-                guard let categoryIndex = self?.sections.firstIndex(of: category) else { return }
+                guard let categoryIndex = self?.categories.firstIndex(of: category) else { return }
                 self?.mainCollectionView.scrollToItem(at: .init(item: categoryIndex, section: 0), at: .left, animated: true)
             }
             
             mainCollectionView.dataSource = self
             mainCollectionView.delegate = self
-            mainCollectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "NewsCell")
+            mainCollectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: Self.articleCollectionCellIdentifier)
             mainCollectionView.backgroundColor = .clear
             mainCollectionView.alwaysBounceHorizontal = true
         }
@@ -160,7 +162,7 @@ extension NewsScreen {
             super.viewWillTransition(to: size, with: coordinator)
             coordinator.animate(alongsideTransition: { context in
                 
-                self.sectionsCollectionViews.values.forEach {
+                self.categoriesCollectionViews.values.forEach {
                     let layout = self.inferNewsCollectionViewLayout(with: size)
                     $0.value?.collectionViewLayout = layout
                     $0.value?.collectionViewLayout.invalidateLayout()
@@ -174,7 +176,7 @@ extension NewsScreen {
                 
             }, completion: { context in
                 
-                self.sectionsCollectionViews.values.forEach {
+                self.categoriesCollectionViews.values.forEach {
                     collectionView in
                     guard let collectionView = collectionView.value else { return }
                     UIView.transition(with: collectionView, duration: 0.2, options: .transitionCrossDissolve) {
@@ -233,10 +235,10 @@ extension NewsScreen.View: NewsScreenView {
         } else {
             //Performing search as the first category
             mainCollectionView.scrollToItem(at: .init(item: 0, section: 0), at: .left, animated: false)
-            updatedCategory = sections[0]
+            updatedCategory = categories[0]
         }
         
-        guard let newsCollectionView = self.sectionsCollectionViews[updatedCategory]?.value else { return }
+        guard let newsCollectionView = self.categoriesCollectionViews[updatedCategory]?.value else { return }
         
         newsCollectionView.refreshControl?.endRefreshing()
         

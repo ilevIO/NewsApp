@@ -66,11 +66,11 @@ class LocalStorageManager {
     
     func save(entityFields: [String: Any?], to entityName: String, primaryKey: PrimaryKey? = nil) {
         
-        if let primaryKey = primaryKey {
-            primaryKeyDeleteTrigger(entityName: entityName, primaryKey: primaryKey)
-        }
-        
         DispatchQueue.main.async {
+            if let primaryKey = primaryKey {
+                self.primaryKeyDeleteTrigger(entityName: entityName, primaryKey: primaryKey)
+            }
+            
             let managedContext = self.persistentContainer.viewContext
             
             self.eraseToLimits(entityName: entityName)
