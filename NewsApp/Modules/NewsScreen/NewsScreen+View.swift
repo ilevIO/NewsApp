@@ -15,7 +15,7 @@ extension NewsScreen {
     
     class View: UIViewController {
         //MARK: - Consts
-        static let topBarHeight: CGFloat = 60
+        static let topBarHeight: CGFloat = 40
         
         var presenter: Presenter!
         
@@ -194,6 +194,10 @@ extension NewsScreen {
         override func viewWillAppear(_ animated: Bool) {
             super.viewWillAppear(animated)
             _viewDidAppear = false
+            
+            UIView.animate(withDuration: 0.3) {
+                self.navigationController?.navigationBar.isHidden = true
+            }
         }
         
         override func viewDidAppear(_ animated: Bool) {
@@ -221,7 +225,7 @@ extension NewsScreen {
 }
 
 extension NewsScreen.View: NewsScreenView {
-    func update(with news: [ArticlePresentationModel], for category: String?, forced: Bool) {
+    func update(with news: [ArticlePresentationModel], for category: String?) {
         var updatedCategory: String
         //Load search results in the first collectionView data
         if let category = category {

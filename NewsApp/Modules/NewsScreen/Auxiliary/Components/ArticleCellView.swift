@@ -23,6 +23,8 @@ class ArticleCellView: UIView, SubscriberObject {
     
     var expandButtonAdded: Bool { expandButton != nil }
     
+    var imagePlaceholder: UIImage { UIImage(systemName: "photo")! }
+    
     //MARK: - Subviews
     var previewImageView: UIImageView = .init()
     var sourceLabel: UILabel = .init()
@@ -54,9 +56,17 @@ class ArticleCellView: UIView, SubscriberObject {
     }
     
     //MARK: - Methods
-    
     func onExpandToggle() {
-        expandButton?.setAttributedTitle(.init(string: isExpanded ? "Collapse" : "Expand", attributes: [.foregroundColor: UILabel.LabelStyle.expandButton.textColor, .font: UILabel.LabelStyle.expandButton.font]), for: .normal)
+        expandButton?.setAttributedTitle(
+            .init(
+                string: isExpanded ? "Collapse" : "Expand",
+                attributes: [
+                    .foregroundColor: UILabel.LabelStyle.expandButton.textColor,
+                    .font: UILabel.LabelStyle.expandButton.font
+                ]
+            ),
+            for: .normal
+        )
         descriptionLabel.numberOfLines = isExpanded ? 0 : 3
     }
     
@@ -65,22 +75,17 @@ class ArticleCellView: UIView, SubscriberObject {
             
             let expandButton = UIButton()
             self.expandButton = expandButton
-            //expandButton.isUserInteractionEnabled = true
+            
             expandButton.addTarget(self, action: #selector(expandButtonTapped(_:)), for: .touchUpInside)
             expandButton.contentHorizontalAlignment = .leading
-            //expandButton.titleLabel?.font = LabelStyle.expandButton.font
-            /*let descriptionTapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(descriptionTapped(_:)))
-            descriptionTapGestureRecognizer.cancelsTouchesInView = true
-            expandButton.addGestureRecognizer(descriptionTapGestureRecognizer)*/
-            //expandButton.font = .systemFont(ofSize: 14, weight: .semibold)
-            //expandButton.textColor = .blue
             expandButton.setContentCompressionResistancePriority(.required, for: .vertical)
+            
             onExpandToggle()
             
+            //Inserting expandButton after descriptionLabel
             if let index = labelsStackView.arrangedSubviews.firstIndex(of: descriptionLabel) {
                 labelsStackView.insertArrangedSubview(expandButton, at: index + 1)
             }
-           // labelsStackView.layoutIfNeeded()
         }
     }
     
@@ -105,7 +110,6 @@ class ArticleCellView: UIView, SubscriberObject {
             hideExpandButton()
         }
     }
-    
     
     func configure(with articleCellModel: ArticlePresentationModel) {
         let articleModel = articleCellModel.model
@@ -147,18 +151,16 @@ class ArticleCellView: UIView, SubscriberObject {
         previewImageView.clipsToBounds = true
         
         if let urlToImage = articleModel.urlToImage {
-            previewImageView.backgroundColor = .lightGray
+            previewImageView.backgroundColor = .lightText
             
             //Keep downloading image after deinit for caching
             _ = Current.image.getImage(urlToImage) { [weak self] image in
-                guard let self = self,
-                      let imageData = image?.jpegData(compressionQuality: 0.0) else { return }
-                let image = UIImage.init(data: imageData)
+                guard let self = self else { return }
                 DispatchQueue.main.async {
                     if urlToImage == self.articleModel?.urlToImage {
                         UIView.transition(with: self.previewImageView, duration: 0.2, options: .transitionCrossDissolve) {
                             self.previewImageView.backgroundColor = .clear
-                            self.previewImageView.image = image ?? .remove
+                            self.previewImageView.image = image ?? self.imagePlaceholder
                             self.previewImageView.setNeedsDisplay()
                         }
                     }
@@ -166,7 +168,7 @@ class ArticleCellView: UIView, SubscriberObject {
             }
         } else {
             self.previewImageView.backgroundColor = .clear
-            self.previewImageView.image = .strokedCheckmark
+            self.previewImageView.image = self.imagePlaceholder
         }
         
         arrangedSubviews.forEach {
@@ -194,6 +196,7 @@ class ArticleCellView: UIView, SubscriberObject {
         
         titleLabel.numberOfLines = 3
         descriptionLabel.numberOfLines = 3
+        
         descriptionLabel.applyStyle(.articleDescription)
         titleLabel.applyStyle(.articleTitle)
         timeLabel.applyStyle(.articleTime)

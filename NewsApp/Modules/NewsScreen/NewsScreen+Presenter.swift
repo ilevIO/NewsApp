@@ -35,6 +35,7 @@ extension NewsScreen {
         var lastQueryTask: Cancellable?
         
         ///Resets period for the category and loads articles. Returns flag if refresh is allowed
+        @discardableResult
         func refresh(for category: String?) -> Bool {
             //Not reloading when is searching locally
             guard query.isEmpty || shouldPerformGlobalSearch else { return false }
@@ -49,13 +50,19 @@ extension NewsScreen {
                 query: query.isEmpty ? nil : query,
                 for: query.isEmpty ? currentCategoryPeriod : nil,
                 category: query.isEmpty ? category : nil) { [weak self] news in
-                guard let self = self, let news = news else { return }
+                guard let self = self else { return }
+                
+                guard let news = news else {
+                    let news = category.flatMap({ self.news[$0]?.articles }) ?? []
+                    self.view?.update(with: news, for: category)
+                    return
+                }
                 
                 let articles: [ArticlePresentationModel] = news.articles.compactMap {
                     ArticlePresentationModel(model: ArticleModel(with: $0), isExpanded: false)
                 }
                 
-                //Change current ccategory period only if
+                //Change current ccategory period only if news received
                 if let category = category, !news.articles.isEmpty {
                     
                     let currentCategoryPeriod = self.currentPeriod[category] ?? self.lastPeriod
@@ -66,7 +73,7 @@ extension NewsScreen {
                 }
                 
                 DispatchQueue.main.async {
-                    self.view?.update(with: articles, for: category, forced: true)
+                    self.view?.update(with: articles, for: category)
                 }
             }
             return true
@@ -74,31 +81,31 @@ extension NewsScreen {
         
         //MARK: - Handlers
         func searchQueryChanged(to query: String) {
-            news.values.forEach({ category in
-                //Update with all if query is empty
-                let filteredArticles = query.isEmpty
-                    ? category.articles
-                    : category.articles.filter({
-                        $0.model.title.lowercased().contains(query.lowercased())
-                    }
-                    )
-                DispatchQueue.main.async {
-                    self.view?.update(with: filteredArticles, for: category.name, forced: true)
+            if self.shouldPerformGlobalSearch {
+                lastQueryTask?.cancel()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                    self.query = query
+                    self.refresh(for: nil)
                 }
-            })
-            /*lastQueryTask?.cancel()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                self.query = query
-                self.refresh(for: "")
-            }*/
+            } else {
+                news.values.forEach({ category in
+                    //Update with everythin if query is empty
+                    let filteredArticles = query.isEmpty
+                        ? category.articles
+                        : category.articles.filter({
+                            $0.model.title.lowercased().contains(query.lowercased())
+                        }
+                        )
+                    DispatchQueue.main.async {
+                        self.view?.update(with: filteredArticles, for: category.name)
+                    }
+                })
+            }
         }
         
         func newsCellTapped(at index: IndexPath, in category: String) {
             guard let _url = news[category]?.articles[index.item].model.url, let url = URL(string: _url) else { return }
-            let webView = WKWebView()
-            let webViewController = UIViewController()
-            webViewController.view.fill(with: webView)
-            webView.load(.init(url: url))
+            let webViewController = WebViewController(request: .init(url: url))
             Current.root?.navigate(to: webViewController)
         }
         
@@ -107,18 +114,17 @@ extension NewsScreen {
             if let result = Current.news.getCachedResult(forCategory: category) {
                 DispatchQueue.main.async {
                     self.view?.update(
-                        with: result.articles.compactMap {  ArticlePresentationModel(model: ArticleModel(with: $0), isExpanded: false) },
-                        for: category,
-                        forced: false
+                        with: result.articles.compactMap {
+                            ArticlePresentationModel(
+                                model: ArticleModel(with: $0),
+                                isExpanded: false
+                            )
+                        },
+                        for: category
                     )
                 }
             }
         }
-        
-        func isWithinPeriod(date: Date, days: TimeInterval) -> Bool {
-            date.distance(to: .init()) < days * 24 * 60 * 60
-        }
-        
         
         func loadNext(category: String) {
             //Use cached articles as placeholders until relevant are being fetched if it is the first time loading category
@@ -145,7 +151,7 @@ extension NewsScreen {
                     guard let news = news else {
                         //Show error message
                         DispatchQueue.main.async {
-                            self.view?.update(with: [], for: category, forced: false)
+                            self.view?.update(with: [], for: category)
                         }
                         return
                     }
@@ -167,10 +173,14 @@ extension NewsScreen {
                         )
                     }
                     DispatchQueue.main.async {
-                        self.view?.update(with: self.news[category]!.articles, for: category, forced: false)
+                        self.view?.update(with: self.news[category]!.articles, for: category)
                     }
                 }
             }
+        }
+        
+        func isWithinPeriod(date: Date, days: TimeInterval) -> Bool {
+            date.distance(to: .init()) < days * 24 * 60 * 60
         }
         
         func scrollDidReachBounds(in category: String) {

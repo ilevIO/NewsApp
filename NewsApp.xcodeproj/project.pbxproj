@@ -28,6 +28,9 @@
 		D12D402A260FEF18006DF1BB /* CoreDataLocalImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D12D4029260FEF18006DF1BB /* CoreDataLocalImage.swift */; };
 		D12D4032260FEF27006DF1BB /* CoreDataLocalArticle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D12D4031260FEF27006DF1BB /* CoreDataLocalArticle.swift */; };
 		D137C595260FF5D9006A3778 /* CoreDataLocalCategoryResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = D137C594260FF5D9006A3778 /* CoreDataLocalCategoryResult.swift */; };
+		D137C59A260FFA20006A3778 /* WebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D137C599260FFA20006A3778 /* WebViewController.swift */; };
+		D137C5A0260FFD7A006A3778 /* CategoriesStackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D137C59F260FFD7A006A3778 /* CategoriesStackView.swift */; };
+		D137C5A5260FFE55006A3778 /* CategoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D137C5A4260FFE55006A3778 /* CategoryView.swift */; };
 		D17AF1F1260B60E80050731E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17AF1F0260B60E80050731E /* AppDelegate.swift */; };
 		D17AF1F3260B60E80050731E /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17AF1F2260B60E80050731E /* SceneDelegate.swift */; };
 		D17AF1FA260B60EA0050731E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D17AF1F9260B60EA0050731E /* Assets.xcassets */; };
@@ -124,6 +127,9 @@
 		D12D4029260FEF18006DF1BB /* CoreDataLocalImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataLocalImage.swift; sourceTree = "<group>"; };
 		D12D4031260FEF27006DF1BB /* CoreDataLocalArticle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataLocalArticle.swift; sourceTree = "<group>"; };
 		D137C594260FF5D9006A3778 /* CoreDataLocalCategoryResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataLocalCategoryResult.swift; sourceTree = "<group>"; };
+		D137C599260FFA20006A3778 /* WebViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewController.swift; sourceTree = "<group>"; };
+		D137C59F260FFD7A006A3778 /* CategoriesStackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoriesStackView.swift; sourceTree = "<group>"; };
+		D137C5A4260FFE55006A3778 /* CategoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryView.swift; sourceTree = "<group>"; };
 		D17AF1ED260B60E80050731E /* NewsApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NewsApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D17AF1F0260B60E80050731E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D17AF1F2260B60E80050731E /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -284,6 +290,16 @@
 				D137C594260FF5D9006A3778 /* CoreDataLocalCategoryResult.swift */,
 			);
 			path = Entities;
+			sourceTree = "<group>";
+		};
+		D137C59E260FFD49006A3778 /* TopBar */ = {
+			isa = PBXGroup;
+			children = (
+				D12D3FC0260E9CB0006DF1BB /* TopBar.swift */,
+				D137C59F260FFD7A006A3778 /* CategoriesStackView.swift */,
+				D137C5A4260FFE55006A3778 /* CategoryView.swift */,
+			);
+			path = TopBar;
 			sourceTree = "<group>";
 		};
 		D17AF1E4260B60E80050731E = {
@@ -571,6 +587,7 @@
 			isa = PBXGroup;
 			children = (
 				D17AF36F260BBE8E0050731E /* Components */,
+				D137C599260FFA20006A3778 /* WebViewController.swift */,
 			);
 			path = Auxiliary;
 			sourceTree = "<group>";
@@ -580,7 +597,7 @@
 			children = (
 				D10ACF38260DCE6600DD45D4 /* ArticleCellView.swift */,
 				D12D3FB6260E6E64006DF1BB /* ArticleHorizontalCollectionViewCell.swift */,
-				D12D3FC0260E9CB0006DF1BB /* TopBar.swift */,
+				D137C59E260FFD49006A3778 /* TopBar */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -862,6 +879,7 @@
 				D17AF26A260B731C0050731E /* GetTopHeadlines.swift in Sources */,
 				D17AF281260B74430050731E /* APIRequestBuilder.swift in Sources */,
 				D12D4001260FEC30006DF1BB /* UILabel+Style.swift in Sources */,
+				D137C5A0260FFD7A006A3778 /* CategoriesStackView.swift in Sources */,
 				D17AF30A260B98DD0050731E /* RootView.swift in Sources */,
 				D17AF305260B98C10050731E /* Root+Presenter.swift in Sources */,
 				D137C595260FF5D9006A3778 /* CoreDataLocalCategoryResult.swift in Sources */,
@@ -894,9 +912,11 @@
 				D17AF381260BC6780050731E /* Cache.swift in Sources */,
 				D12D4009260FED05006DF1BB /* ArticleModel.swift in Sources */,
 				D17AF392260BCD7D0050731E /* UIView+Shadow.swift in Sources */,
+				D137C5A5260FFE55006A3778 /* CategoryView.swift in Sources */,
 				D17AF3AD260BF2090050731E /* NewsScreen+View+UIScrollViewDelegate.swift in Sources */,
 				D12D3FBC260E99A6006DF1BB /* NewsScreen+View+UICollectionViewDelegate.swift in Sources */,
 				D17AF328260B9A5F0050731E /* NewsRequests.swift in Sources */,
+				D137C59A260FFA20006A3778 /* WebViewController.swift in Sources */,
 				D17AF336260B9AFA0050731E /* VoidParameters.swift in Sources */,
 				D12D402A260FEF18006DF1BB /* CoreDataLocalImage.swift in Sources */,
 				D17AF1F1260B60E80050731E /* AppDelegate.swift in Sources */,

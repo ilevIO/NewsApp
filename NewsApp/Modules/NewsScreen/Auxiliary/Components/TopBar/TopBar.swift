@@ -8,172 +8,14 @@
 import Foundation
 import UIKit
 
-class CategoryView: UIView {
-    var inactiveColor: UIColor = .lightGray
-    var activeColor: UIColor
-    var title: String {
-        get {
-            titleLabel.text ?? ""
-        }
-        set {
-            titleLabel.text = newValue
-        }
-    }
-    var onTapAction: ((CategoryView) -> Void)? = nil
-    
-    //MARK: - Subviews
-    var titleLabel: UILabel = .init()
-    
-    
-    @objc func didTap(_ recognizer: UITapGestureRecognizer) {
-        onTapAction?(self)
-    }
-    
-    func select() {
-        backgroundColor = activeColor
-    }
-    
-    func deselect() {
-        backgroundColor = inactiveColor
-    }
-    
-    func buildHierarchy() {
-        addSubview(titleLabel)
-    }
-    
-    func configureSubviews() {
-        backgroundColor = inactiveColor
-    }
-    
-    func setupLayout() {
-        fillLayout(with: titleLabel, insets: .init(top: 6, left: 8, bottom: 6, right: 8))
-    }
-    
-    func setup() {
-        buildHierarchy()
-        configureSubviews()
-        setupLayout()
-        
-        backgroundColor = inactiveColor
-        addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTap(_:))))
-    }
-    
-    init(title: String, activeColor: UIColor, inactiveColor: UIColor = .systemGray4, onTapAction: ((CategoryView) -> Void)?, frame: CGRect = .zero) {
-        self.activeColor = activeColor
-        self.inactiveColor = inactiveColor
-        self.onTapAction = onTapAction
-        super.init(frame: frame)
-        
-        setup()
-        self.title = title
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-}
-
-class CategoriesStackView: UIStackView {
-    let colors: [UIColor] = [
-        .systemTeal,
-        .systemRed,
-        .systemPink,
-        .systemBlue,
-        .systemGray,
-        .systemGreen,
-        .systemOrange,
-        .systemYellow,
-        .systemPurple,
-        .red,
-        .cyan,
-        .orange
-    ]
-    
-    //var stackView: UIStackView = .init()
-    
-    var onCategoryChanged: ((String) -> Void)?
-    
-    var categoryViews: [CategoryView] {
-        arrangedSubviews.compactMap({ $0 as? CategoryView })
-    }
-    
-    func select(categoryView: CategoryView) {
-        categoryViews
-            .filter { $0 !== categoryView }
-            .forEach { $0.deselect() }
-        categoryView.select()
-    }
-    
-    private func categoryTapped(categoryView: CategoryView) {
-        onCategoryChanged?(categoryView.title)
-    }
-    
-    func selectCategory(_ category: String) {
-        categoryViews
-            .first { $0.title == category }
-            .flatMap { select(categoryView: $0) }
-    }
-    
-    func configure(with categories: [String]) {
-        self.removeAllArrangedSubviews()
-        
-        categories
-            .enumerated()
-            .forEach {
-                let categoryView = CategoryView(
-                    title: $0.element,
-                    activeColor: colors[$0.offset % colors.count],
-                    onTapAction: { [weak self] categoryView in
-                        self?.categoryTapped(categoryView: categoryView)
-                    }
-                ) /*UIView()
-                let color = colors[$0.offset % colors.count]
-                categoryView.backgroundColor = color
-                let titleLabel = UILabel()
-                titleLabel.text = $0.element
-                categoryView.fill(with: titleLabel, insets: .init(top: 4, left: 8, bottom: 4, right: 8))*/
-                self.addArrangedSubview(categoryView)
-            }
-    }
-    
-    private func buildHierarhy() {
-        //addSubview(stackView)
-    }
-    
-    private func configureSubviews() {
-        self.distribution = .fillProportionally
-        self.axis = .horizontal
-    }
-    
-    private func setupLayout() {
-        //fillLayout(with: stackView)
-    }
-    
-    private func setup() {
-        buildHierarhy()
-        configureSubviews()
-        setupLayout()
-    }
-    
-    override init(frame: CGRect = .init()) {
-        super.init(frame: frame)
-        
-        setup()
-    }
-    
-    required init(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-}
-
-struct SearchControlHandlers {
-    var onSearchButtonTapped: (() -> Void)? = nil
-    var onSearchCancelTapped: (() -> Void)? = nil
-    var onSearchQueryChanged: ((String) -> Void)? = nil
-}
-
 class NewsTopBarView: UIView {
     
+    struct SearchControlHandlers {
+        var onSearchButtonTapped: (() -> Void)? = nil
+        var onSearchCancelTapped: (() -> Void)? = nil
+        var onSearchQueryChanged: ((String) -> Void)? = nil
+    }
+
     var searchControlHandlers: SearchControlHandlers
     //MARK: - Subviews
     var contentView: UIView = .init()
@@ -226,7 +68,7 @@ class NewsTopBarView: UIView {
         categoriesStackView.alignment = .bottom
         categoriesScrollView.showsHorizontalScrollIndicator = false
         
-        searchButton.setImage(.add, for: .normal)
+        searchButton.setImage(UIImage(systemName: "magnifyingglass"), for: .normal)
         searchButton.addTarget(self, action: #selector(searchButtonTapped(_:)), for: .touchUpInside)
         
         searchBar.showsCancelButton = true

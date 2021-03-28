@@ -28,8 +28,8 @@ extension UILabel.LabelStyle {
     )
     
     static let articleTime: UILabel.LabelStyle = .init(
-        font: .systemFont(ofSize: 12, weight: .light),
-        textColor: .systemGray4
+        font: .systemFont(ofSize: 12, weight: .regular),
+        textColor: .systemGray3
     )
     
     static let expandButton: UILabel.LabelStyle = .init(
